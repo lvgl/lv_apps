@@ -23,7 +23,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "tpcal.h"
+#include "lv_tpcal.h"
 #if LV_USE_TPCAL
 #include <stdio.h>
 

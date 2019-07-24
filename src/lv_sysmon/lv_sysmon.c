@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "sysmon.h"
+#include "lv_sysmon.h"
 #if LV_USE_SYSMON
 
 #include <stdio.h>

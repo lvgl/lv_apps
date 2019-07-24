@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "benchmark.h"
+#include "lv_benchmark.h"
 #if LV_USE_BENCHMARK
 
 #include <stdio.h>

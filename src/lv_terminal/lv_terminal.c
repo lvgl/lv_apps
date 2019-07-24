@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "terminal.h"
+#include "lv_terminal.h"
 #if LV_USE_TERMINAL
 
 /*********************

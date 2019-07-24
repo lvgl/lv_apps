@@ -6,7 +6,7 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "demo.h"
+#include "lv_demo.h"
 #if LV_USE_DEMO
 
 /*********************
