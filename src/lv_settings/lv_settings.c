@@ -11,8 +11,8 @@
 /*********************
  *      DEFINES
  *********************/
-#define ANIM_TIME   300
-#define MIN_WIDTH   250
+#define LV_SETTINGS_ANIM_TIME   300 /*[ms]*/
+#define LV_SETTINGS_MAX_WIDTH   250
 
 /**********************
  *      TYPEDEFS
@@ -33,7 +33,6 @@ typedef struct
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-
 
 static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item);
 static void add_btn(lv_obj_t * page, lv_settings_item_t * item);
@@ -81,7 +80,7 @@ static lv_ll_t history_ll;
  * Create a settings application
  * @param root_item descriptor of the settings button. For example:
  * `lv_settings_menu_item_t root_item = {.name = "Settings", .event_cb = root_event_cb};`
- * @return the craeted settigns button
+ * @return the created settings button
  */
 lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
 {
@@ -117,6 +116,8 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
     lv_obj_set_pos(menu_btn, 0, 0);
 
     lv_ll_init(&history_ll, sizeof(lv_settings_item_t));
+
+    return menu_btn;
 }
 
 /**
@@ -128,7 +129,7 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
  */
 lv_obj_t * lv_settings_create_page(lv_settings_item_t * item)
 {
-    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), MIN_WIDTH);
+    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), LV_SETTINGS_MAX_WIDTH);
 
     lv_obj_t * old_menu_cont = act_cont;
 
@@ -172,7 +173,7 @@ lv_obj_t * lv_settings_create_page(lv_settings_item_t * item)
         lv_anim_set_exec_cb(&a, old_menu_cont, NULL);
         lv_anim_set_values(&a, 0, 1);
         lv_anim_set_path_cb(&a, lv_anim_path_step);
-        lv_anim_set_time(&a, ANIM_TIME, 0);
+        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
         lv_anim_set_ready_cb(&a, old_cont_del_cb);
         lv_anim_create(&a);
     }
@@ -182,7 +183,7 @@ lv_obj_t * lv_settings_create_page(lv_settings_item_t * item)
     lv_anim_init(&a);
     lv_anim_set_exec_cb(&a, act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
     lv_anim_set_values(&a, -lv_obj_get_width(act_cont), 0);
-    lv_anim_set_time(&a, ANIM_TIME, 0);
+    lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
     lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
     lv_anim_create(&a);
 
@@ -647,7 +648,7 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
         lv_anim_set_exec_cb(&a, old_menu_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
         lv_anim_set_values(&a, 0, -lv_obj_get_width(old_menu_cont));
         lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-        lv_anim_set_time(&a, ANIM_TIME, 0);
+        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
         lv_anim_set_ready_cb(&a, old_cont_del_cb);
         lv_anim_create(&a);
 

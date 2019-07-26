@@ -46,7 +46,7 @@ static lv_settings_item_t motor_menu_items[] = {
                                                                          "Type 2\n"
                                                                          "Type 3",
          .event_cb = motor_menu_event_cb},
-        {.type = LV_SETTINGS_TYPE_SW, .name = "Short circuit protect", .value = "Enabled", .event_cb = motor_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_SW, .name = "Short circuit protect", .value = "Not protected", .event_cb = motor_menu_event_cb},
         {.type = LV_SETTINGS_TYPE_BTN, .name = "Test motor", .value = "Start", .event_cb = motor_menu_event_cb},
         {.type = LV_SETTINGS_TYPE_INV},     /*Mark the last item*/
 };
