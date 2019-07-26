@@ -81,8 +81,9 @@ static lv_ll_t history_ll;
  * Create a settings application
  * @param root_item descriptor of the settings button. For example:
  * `lv_settings_menu_item_t root_item = {.name = "Settings", .event_cb = root_event_cb};`
+ * @return the craeted settigns button
  */
-void lv_settings_create(lv_settings_item_t * root_item)
+lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
 {
     lv_theme_t *th = lv_theme_get_current();
     if(th) {
