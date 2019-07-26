@@ -36,8 +36,8 @@ typedef enum {
 
 typedef struct {
     lv_settings_type_t type;
-    const char * name;          /*Name or title of the item*/
-    const char * value;         /*The current value as string*/
+    char * name;          /*Name or title of the item*/
+    char * value;         /*The current value as string*/
     int32_t state;              /*The current state, e.g. slider's value, switch state as a number */
     lv_event_cb_t event_cb;
     lv_obj_t * cont;
@@ -70,6 +70,13 @@ lv_obj_t * lv_settings_create_page(lv_settings_item_t * item);
  * @param item pointer to a an `lv_settings_item_t` item.
  */
 void lv_settings_add(lv_obj_t * page, lv_settings_item_t * item);
+
+
+/**
+ * Refresh an item's name value and state.
+ * @param item pointer to a an `lv_settings_item _t` item.
+ */
+void lv_settings_refr(lv_settings_item_t * item);
 
 /**********************
  *      MACROS

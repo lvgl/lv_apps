@@ -41,13 +41,22 @@ static void add_sw(lv_obj_t * page, lv_settings_item_t * item);
 static void add_ddlist(lv_obj_t * page, lv_settings_item_t * item);
 static void add_numset(lv_obj_t * page, lv_settings_item_t * item);
 static void add_slider(lv_obj_t * page, lv_settings_item_t * item);
-static void header_back_event_cb(lv_obj_t * btn, lv_event_t e);
+
+static void refr_list_btn(lv_settings_item_t * item);
+static void refr_btn(lv_settings_item_t * item);
+static void refr_sw(lv_settings_item_t * item);
+static void refr_ddlist(lv_settings_item_t * item);
+static void refr_numset(lv_settings_item_t * item);
+static void refr_slider(lv_settings_item_t * item);
+
 static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e);
 static void slider_event_cb(lv_obj_t * slider, lv_event_t e);
 static void sw_event_cb(lv_obj_t * sw, lv_event_t e);
 static void btn_event_cb(lv_obj_t * btn, lv_event_t e);
 static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e);
 static void numset_event_cb(lv_obj_t * btn, lv_event_t e);
+
+static void header_back_event_cb(lv_obj_t * btn, lv_event_t e);
 static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item);
 static void old_cont_del_cb(lv_anim_t * a);
 
@@ -78,14 +87,15 @@ void lv_settings_create(lv_settings_item_t * root_item)
     lv_theme_t *th = lv_theme_get_current();
     if(th) {
         lv_style_copy(&style_menu_bg, th->style.cont);
+        lv_style_copy(&style_item_cont, th->style.list.btn.rel);
     } else {
         lv_style_copy(&style_menu_bg, &lv_style_pretty);
+        lv_style_copy(&style_item_cont, &lv_style_transp);
     }
 
     lv_style_copy(&style_bg, &lv_style_transp_tight);
     style_menu_bg.body.radius = 0;
 
-    lv_style_copy(&style_item_cont, th->style.list.btn.rel);
     style_item_cont.body.padding.left = LV_DPI / 5;
     style_item_cont.body.padding.right = LV_DPI / 5;
     style_item_cont.body.padding.top = LV_DPI / 10;
@@ -188,11 +198,32 @@ void lv_settings_add(lv_obj_t * page, lv_settings_item_t * item)
 {
     switch(item->type) {
     case LV_SETTINGS_TYPE_LIST_BTN: add_list_btn(page, item); break;
-    case LV_SETTINGS_TYPE_BTN: add_btn(page, item); break;
-    case LV_SETTINGS_TYPE_SLIDER: add_slider(page, item); break;
-    case LV_SETTINGS_TYPE_SW: add_sw(page, item); break;
-    case LV_SETTINGS_TYPE_DDLIST: add_ddlist(page, item); break;
-    case LV_SETTINGS_TYPE_NUMSET: add_numset(page, item); break;
+    case LV_SETTINGS_TYPE_BTN:      add_btn(page, item); break;
+    case LV_SETTINGS_TYPE_SLIDER:   add_slider(page, item); break;
+    case LV_SETTINGS_TYPE_SW:       add_sw(page, item); break;
+    case LV_SETTINGS_TYPE_DDLIST:   add_ddlist(page, item); break;
+    case LV_SETTINGS_TYPE_NUMSET:   add_numset(page, item); break;
+    default: break;
+    }
+}
+
+/**
+ * Refresh an item's name value and state.
+ * @param item pointer to a an `lv_settings_item _t` item.
+ */
+void lv_settings_refr(lv_settings_item_t * item)
+{
+    /*Return if there is nothing to refresh*/
+    if(item->cont == NULL) return;
+
+    switch(item->type) {
+    case LV_SETTINGS_TYPE_LIST_BTN: refr_list_btn(item); break;
+    case LV_SETTINGS_TYPE_BTN:      refr_btn(item); break;
+    case LV_SETTINGS_TYPE_SLIDER:   refr_slider(item); break;
+    case LV_SETTINGS_TYPE_SW:       refr_sw(item); break;
+    case LV_SETTINGS_TYPE_DDLIST:   refr_ddlist(item); break;
+    case LV_SETTINGS_TYPE_NUMSET:   refr_numset(item); break;
+    default: break;
     }
 }
 
@@ -230,6 +261,7 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
     }
 }
 
+
 /**
  * Create a button. Write `item->name` on create a button on the right with `item->value` text.
  * @param page pointer to a menu page created by `lv_settings_create_page`
@@ -265,13 +297,22 @@ static void add_sw(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * name = lv_label_create(cont, NULL);
     lv_label_set_text(name, item->name);
 
+    lv_obj_t * value = lv_label_create(cont, NULL);
+    lv_label_set_text(value, item->value);
+
+    lv_theme_t * th = lv_theme_get_current();
+    if(th) {
+        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
+    }
+
     lv_obj_t * sw = lv_sw_create(cont, NULL);
     lv_obj_set_event_cb(sw, sw_event_cb);
     lv_obj_set_size(sw, LV_DPI / 2, LV_DPI / 4);
     if(item->state) lv_sw_on(sw, LV_ANIM_OFF);
 
+    lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, style_item_cont.body.padding.left, style_item_cont.body.padding.top);
+    lv_obj_align(value, name, LV_ALIGN_OUT_BOTTOM_LEFT, 0, style_item_cont.body.padding.inner);
     lv_obj_align(sw, NULL, LV_ALIGN_IN_RIGHT_MID, -style_item_cont.body.padding.right, 0);
-    lv_obj_align(name, NULL, LV_ALIGN_IN_LEFT_MID, style_item_cont.body.padding.left, 0);
 }
 
 /**
@@ -360,6 +401,207 @@ static void add_slider(lv_obj_t * page, lv_settings_item_t * item)
     lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
 }
 
+static void refr_list_btn(lv_settings_item_t * item)
+{
+    lv_obj_t * name = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * value = lv_obj_get_child(item->cont, NULL);
+
+    lv_label_set_text(name, item->name);
+    lv_label_set_text(value, item->value);
+}
+
+static void refr_btn(lv_settings_item_t * item)
+{
+    lv_obj_t * btn = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * name = lv_obj_get_child(item->cont, btn);
+    lv_obj_t * value = lv_obj_get_child(btn, NULL);
+
+    lv_label_set_text(name, item->name);
+    lv_label_set_text(value, item->value);
+}
+
+
+static void refr_sw(lv_settings_item_t * item)
+{
+    lv_obj_t * sw = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * value = lv_obj_get_child(item->cont, sw);
+    lv_obj_t * name = lv_obj_get_child(item->cont, value);
+
+    lv_label_set_text(name, item->name);
+    lv_label_set_text(value, item->value);
+
+    bool tmp_state = lv_sw_get_state(sw) ? true : false;
+    if(tmp_state != item->state) {
+        if(tmp_state == false) lv_sw_off(sw, LV_ANIM_OFF);
+        else lv_sw_on(sw, LV_ANIM_OFF);
+    }
+}
+
+static void refr_ddlist(lv_settings_item_t * item)
+{
+    lv_obj_t * name = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * ddlist = lv_obj_get_child(item->cont, name);
+
+    lv_label_set_text(name, item->name);
+
+    lv_ddlist_set_options(ddlist, item->value);
+
+    lv_ddlist_set_selected(ddlist, item->state);
+}
+
+static void refr_numset(lv_settings_item_t * item)
+{
+    lv_obj_t * name = lv_obj_get_child_back(item->cont, NULL);
+    lv_obj_t * value = lv_obj_get_child_back(item->cont, name); /*It's the minus button*/
+    value = lv_obj_get_child_back(item->cont, value);
+
+    lv_label_set_text(name, item->name);
+    lv_label_set_text(value, item->value);
+}
+
+static void refr_slider(lv_settings_item_t * item)
+{
+    lv_obj_t * slider = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * value = lv_obj_get_child(item->cont, slider);
+    lv_obj_t * name = lv_obj_get_child(item->cont, value);
+
+    lv_label_set_text(name, item->name);
+    lv_label_set_text(value, item->value);
+
+    if(lv_slider_get_value(slider) != item->state) lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
+}
+
+/**
+ * List button event callback. The following events are sent:
+ * - `LV_EVENT_CLICKED`
+ * - `LV_EEVNT_SHORT_CLICKED`
+ * - `LV_EEVNT_LONG_PRESSED`
+ * @param btn pointer to the back button
+ * @param e the event
+ */
+static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
+{
+    /*Save the menu item because the button will be deleted in `menu_cont_create` and `ext` will be invalid */
+    liste_ext_t * ext = lv_obj_get_ext_attr(btn);
+
+    if(e == LV_EVENT_CLICKED ||
+       e == LV_EVENT_SHORT_CLICKED ||
+       e == LV_EVENT_LONG_PRESSED) {
+        /*If the button doesn't handle events do nothing.*/
+        if(ext->item->event_cb == NULL) return;
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(ext->item->event_cb, NULL, e, ext->item);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
+
+/**
+ * Slider event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED`,
+ * save the state and refresh the value label.
+ * @param slider pointer to the slider
+ * @param e the event
+ */
+static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
+{
+    lv_obj_t * cont = lv_obj_get_parent(slider);
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+
+    if(e == LV_EVENT_VALUE_CHANGED) {
+        ext->item->state = lv_slider_get_value(slider);
+        lv_event_send_func(ext->item->event_cb, slider, e, ext->item);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
+
+/**
+ * Switch event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED` and save the state.
+ * @param sw pointer to the switch
+ * @param e the event
+ */
+static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
+{
+    lv_obj_t * cont = lv_obj_get_parent(sw);
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+
+    if(e == LV_EVENT_VALUE_CHANGED) {
+
+        ext->item->state = lv_sw_get_state(sw);
+        lv_event_send_func(ext->item->event_cb, sw, e, ext->item);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
+
+/**
+ * Button event callback. Call the item's `event_cb`  with `LV_EVENT_VALUE_CHANGED` when clicked.
+ * @param obj pointer to the switch or the container in case of `LV_EVENT_REFRESH`
+ * @param e the event
+ */
+static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
+{
+    lv_obj_t * cont = lv_obj_get_parent(obj);
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+
+    if(e == LV_EVENT_CLICKED) {
+        lv_event_send_func(ext->item->event_cb, obj, e, ext->item);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
+
+/**
+ * Drop down list event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED` and save the state.
+ * @param ddlist pointer to the Drop down lsit
+ * @param e the event
+ */
+static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
+{
+    lv_obj_t * cont = lv_obj_get_parent(ddlist);
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    if(e == LV_EVENT_VALUE_CHANGED) {
+        ext->item->state = lv_ddlist_get_selected(ddlist);
+
+        lv_event_send_func(ext->item->event_cb, ddlist, e, ext->item);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
+
+/**
+ * Number set buttons' event callback. Increment/decrement the state and call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED`.
+ * @param btn pointer to the plus or minus button
+ * @param e the event
+ */
+static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
+{
+    lv_obj_t * cont = lv_obj_get_parent(btn);
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    if(e == LV_EVENT_SHORT_CLICKED || e == LV_EVENT_LONG_PRESSED_REPEAT) {
+
+        lv_obj_t * label = lv_obj_get_child(btn, NULL);
+        if(strcmp(lv_label_get_text(label), LV_SYMBOL_MINUS) == 0) ext->item->state--;
+        else ext->item->state ++;
+
+        lv_event_send_func(ext->item->event_cb, NULL, LV_EVENT_VALUE_CHANGED, ext->item);
+
+        /*Get the value label*/
+        label = lv_obj_get_child(cont, NULL);
+        label = lv_obj_get_child(cont, label);
+
+        lv_label_set_text(label, ext->item->value);
+    }
+    else if(e == LV_EVENT_DELETE) {
+        ext->item->cont = NULL;
+    }
+}
 
 /**
  * Back button event callback. Load the previous menu on click and delete the current.
@@ -415,151 +657,6 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
     if(act_cont) {
         lv_anim_del(act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
         lv_obj_set_x(act_cont, 0);
-    }
-}
-
-/**
- * List button event callback. The following events are sent:
- * - `LV_EVENT_CLICKED`
- * - `LV_EEVNT_SHORT_CLICKED`
- * - `LV_EEVNT_LONG_PRESSED`
- * @param btn pointer to the back button
- * @param e the event
- */
-static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
-{
-    /*Save the menu item because the button will be deleted in `menu_cont_create` and `ext` will be invalid */
-    liste_ext_t * ext = lv_obj_get_ext_attr(btn);
-
-    if(e == LV_EVENT_CLICKED ||
-       e == LV_EVENT_SHORT_CLICKED ||
-       e == LV_EVENT_LONG_PRESSED) {
-        /*If the button doesn't handle events do nothing.*/
-        if(ext->item->event_cb == NULL) return;
-
-        /*Call the button's event handler to create the menu*/
-        lv_event_send_func(ext->item->event_cb, NULL, e, ext->item);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
-    }
-}
-
-/**
- * Slider event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED`,
- * save the state and refresh the value label.
- * @param slider pointer to the slider
- * @param e the event
- */
-static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
-{
-    lv_obj_t * cont = lv_obj_get_parent(slider);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-
-    if(e == LV_EVENT_VALUE_CHANGED) {
-        ext->item->state = lv_slider_get_value(slider);
-        lv_event_send_func(ext->item->event_cb, slider, e, ext->item);
-
-        /*Get he value label (2nd child of the container)*/
-        lv_obj_t * value;
-        value = lv_obj_get_child(cont, NULL);
-        value = lv_obj_get_child(cont, value);
-
-        lv_label_set_text(value, ext->item->value);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
-    }
-}
-
-/**
- * Switch event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED` and save the state.
- * @param sw pointer to the switch
- * @param e the event
- */
-static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
-{
-    lv_obj_t * cont = lv_obj_get_parent(sw);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-
-    if(e == LV_EVENT_VALUE_CHANGED) {
-
-        ext->item->state = lv_sw_get_state(sw);
-        lv_event_send_func(ext->item->event_cb, sw, e, ext->item);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
-    }
-}
-
-/**
- * Button event callback. Call the item's `event_cb`  with `LV_EVENT_CLICKED` and save the state.
- * @param obj pointer to the switch or the container in case of `LV_EVENT_REFRESH`
- * @param e the event
- */
-static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
-{
-    lv_obj_t * cont = lv_obj_get_parent(obj);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-
-    if(e == LV_EVENT_CLICKED) {
-        lv_event_send_func(ext->item->event_cb, obj, e, ext->item);
-
-        /*Get he value label (1st child of the button)*/
-        lv_obj_t * value;
-        value = lv_obj_get_child(obj, NULL);
-
-        lv_label_set_text(value, ext->item->value);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
-    }
-}
-
-/**
- * Drop down list event callback. Call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED` and save the state.
- * @param ddlist pointer to the Drop down lsit
- * @param e the event
- */
-static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
-{
-    lv_obj_t * cont = lv_obj_get_parent(ddlist);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-    if(e == LV_EVENT_VALUE_CHANGED) {
-        ext->item->state = lv_ddlist_get_selected(ddlist);
-
-        lv_event_send_func(ext->item->event_cb, ddlist, e, ext->item);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
-    }
-}
-
-/**
- * Number set buttons' event callback. Increment/decrement the state and call the item's `event_cb` with `LV_EVENT_VALUE_CHANGED`.
- * @param btn pointer to the plus or minus button
- * @param e the event
- */
-static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
-{
-    lv_obj_t * cont = lv_obj_get_parent(btn);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-    if(e == LV_EVENT_SHORT_CLICKED || e == LV_EVENT_LONG_PRESSED_REPEAT) {
-
-        lv_obj_t * label = lv_obj_get_child(btn, NULL);
-        if(strcmp(lv_label_get_text(label), LV_SYMBOL_MINUS) == 0) ext->item->state--;
-        else ext->item->state ++;
-
-        lv_event_send_func(ext->item->event_cb, NULL, LV_EVENT_VALUE_CHANGED, ext->item);
-
-        /*Get the value label*/
-        label = lv_obj_get_child(cont, NULL);
-        label = lv_obj_get_child(cont, label);
-
-        lv_label_set_text(label, ext->item->value);
-    }
-    else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
     }
 }
 
