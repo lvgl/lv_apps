@@ -67,6 +67,7 @@ static lv_style_t style_menu_bg;
 static lv_style_t style_bg;
 static lv_style_t style_item_cont;
 static lv_ll_t history_ll;
+static lv_group_t * group;
 
 /**********************
  *      MACROS
@@ -109,6 +110,7 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
     ext->item = root_item;
 
     lv_obj_set_event_cb(menu_btn, list_btn_event_cb);
+    if(group) lv_group_add_obj(group, menu_btn);
 
     lv_obj_t * menu_label = lv_label_create(menu_btn, NULL);
     lv_label_set_text(menu_label, LV_SYMBOL_LIST);
@@ -118,6 +120,17 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
     lv_ll_init(&history_ll, sizeof(lv_settings_item_t));
 
     return menu_btn;
+}
+
+/**
+ * Automatically add the item to a group to allow navigation with keypad or encoder.
+ * Should be called before `lv_settings_create`
+ * The group can be change at any time.
+ * @param g the group to use. `NULL` to not use this feature.
+ */
+void lv_settings_set_group(lv_group_t * g)
+{
+    group = g;
 }
 
 /**
@@ -146,6 +159,8 @@ lv_obj_t * lv_settings_create_page(lv_settings_item_t * item)
     lv_obj_t * header_back_btn = lv_btn_create(header, NULL);
     lv_btn_set_fit(header_back_btn, LV_FIT_TIGHT);
     lv_obj_set_event_cb(header_back_btn, header_back_event_cb);
+    if(group) lv_group_add_obj(group, header_back_btn);
+    lv_group_focus_obj(header_back_btn);
 
     lv_obj_t * header_back_label = lv_label_create(header_back_btn, NULL);
     lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
@@ -245,6 +260,7 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_btn_set_fit2(liste, LV_FIT_FLOOD, LV_FIT_TIGHT);
     lv_page_glue_obj(liste, true);
     lv_obj_set_event_cb(liste, list_btn_event_cb);
+    if(group) lv_group_add_obj(group, liste);
 
     liste_ext_t * ext = lv_obj_allocate_ext_attr(liste, sizeof(liste_ext_t));
     ext->item = item;
@@ -279,6 +295,7 @@ static void add_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * btn = lv_btn_create(cont, NULL);
     lv_btn_set_fit(btn, LV_FIT_TIGHT);
     lv_obj_set_event_cb(btn, btn_event_cb);
+    if(group) lv_group_add_obj(group, btn);
 
     lv_obj_t * value = lv_label_create(btn, NULL);
     lv_label_set_text(value, item->value);
@@ -311,6 +328,7 @@ static void add_sw(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_set_event_cb(sw, sw_event_cb);
     lv_obj_set_size(sw, LV_DPI / 2, LV_DPI / 4);
     if(item->state) lv_sw_on(sw, LV_ANIM_OFF);
+    if(group) lv_group_add_obj(group, sw);
 
     lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, style_item_cont.body.padding.left, style_item_cont.body.padding.top);
     lv_obj_align(value, name, LV_ALIGN_OUT_BOTTOM_LEFT, 0, style_item_cont.body.padding.inner);
@@ -338,6 +356,7 @@ static void add_ddlist(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_align(ddlist, label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, style_item_cont.body.padding.inner);
     lv_obj_set_event_cb(ddlist, ddlist_event_cb);
     lv_ddlist_set_selected(ddlist, item->state);
+    if(group) lv_group_add_obj(group, ddlist);
 }
 
 /**
@@ -358,6 +377,7 @@ static void add_numset(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * btn_dec = lv_btn_create(cont, NULL);
     lv_obj_set_size(btn_dec, LV_DPI / 2, LV_DPI / 2);
     lv_obj_set_event_cb(btn_dec, numset_event_cb);
+    if(group) lv_group_add_obj(group, btn_dec);
 
     label = lv_label_create(btn_dec, NULL);
     lv_label_set_text(label, LV_SYMBOL_MINUS);
@@ -367,6 +387,7 @@ static void add_numset(lv_obj_t * page, lv_settings_item_t * item)
 
     lv_obj_t * btn_inc = lv_btn_create(cont, btn_dec);
     lv_obj_set_size(btn_inc, LV_DPI / 2, LV_DPI / 2);
+    if(group) lv_group_add_obj(group, btn_inc);
 
     label = lv_label_create(btn_inc, NULL);
     lv_label_set_text(label, LV_SYMBOL_PLUS);
@@ -401,6 +422,7 @@ static void add_slider(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_set_event_cb(slider, slider_event_cb);
     lv_slider_set_range(slider, 0, 256);
     lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
+    if(group) lv_group_add_obj(group, slider);
 }
 
 static void refr_list_btn(lv_settings_item_t * item)

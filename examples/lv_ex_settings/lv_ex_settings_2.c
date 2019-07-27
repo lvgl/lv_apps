@@ -8,10 +8,19 @@
  *********************/
 #include "lv_ex_settings_2.h"
 #include "../../src/lv_settings/lv_settings.h"
+#include "lv_drivers/indev/keyboard.h"
+#include "lv_drivers/indev/mousewheel.h"
 
 /*********************
  *      DEFINES
  *********************/
+#ifndef LV_SETTINGS_KEYBOARD
+#define LV_SETTINGS_KEYBOARD 0
+#endif
+
+#ifndef LV_SETTINGS_MOUSEWHEEL
+#define LV_SETTINGS_MOUSEWHEEL 1
+#endif
 
 /**********************
  *      TYPEDEFS
@@ -87,7 +96,36 @@ void lv_ex_settings_2(void)
 
     lv_theme_set_current(th);
 
+
+/*Add keyboard or mouswheel input devices if enabled*/
+#if LV_SETTINGS_KEYBOARD
+    keyboard_init();
+    lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);          /*Basic initialization*/
+    indev_drv.type = LV_INDEV_TYPE_KEYPAD;
+    indev_drv.read_cb = keyboard_read;         /*This function will be called periodically (by the library) to get the mouse position and state*/
+
+#elif LV_SETTINGS_MOUSEWHEEL
+    mousewheel_init();
+    lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);          /*Basic initialization*/
+    indev_drv.type = LV_INDEV_TYPE_ENCODER;
+    indev_drv.read_cb = mousewheel_read;         /*This function will be called periodically (by the library) to get the mouse position and state*/
+#endif
+
+#if LV_SETTINGS_KEYBOARD || LV_SETTINGS_MOUSEWHEEL
+    lv_indev_t * indev = lv_indev_drv_register(&indev_drv);
+
+    lv_group_t * g = lv_group_create();
+    lv_indev_set_group(indev, g);
+    lv_settings_set_group(g);
+#endif
+
+
+    /*Create the settings menu with a root item*/
     lv_settings_create(&root_item);
+
+
 }
 
 /**********************

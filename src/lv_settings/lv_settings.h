@@ -57,6 +57,14 @@ typedef struct {
 lv_obj_t * lv_settings_create(lv_settings_item_t * root_item);
 
 /**
+ * Automatically add the item to a group to allow navigation with keypad or encoder.
+ * Should be called before `lv_settings_create`
+ * The group can be change at any time.
+ * @param g the group to use. `NULL` to not use this feature.
+ */
+void lv_settings_set_group(lv_group_t * g);
+
+/**
  * Create a new settings page for an item
  * @param item pointer to a an `lv_settings_item_t` item.
  * `item->name` will be the title of the page.
