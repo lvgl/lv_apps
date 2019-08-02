@@ -32,7 +32,7 @@ lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 Referred as  `LV_SETTINGS_TYPE_LIST_BTN`,
 
 A large button. Usually used to open new pages in the menu.  
-![List button in settings application - LittlevGL](lv_settings_list_btn.png)
+![List button in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/raw/master/misc/lv_settings_list_btn.png)
 
 It displays the `name` and value of the `item`. If a theme is set `value` will use `theme.style.label.hint` style.
 
@@ -46,7 +46,7 @@ In `event_cb`
 Referred as  `LV_SETTINGS_TYPE_BTN`,
 
 Displays `name` and a button with `value` text on it.
-![Button in settings application - LittlevGL](lv_settings_btn.png)
+![Button in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/blob/master/misc/lv_settings_btn.gif)
 
 The buttons don't use `state` so it can be freely if required to keep track of the state of something.
 
@@ -56,7 +56,7 @@ In `event_cb` `LV_EVENT_CLICKED` is sent when the button is clicked
 Referred as  `LV_SETTINGS_TYPE_SW`,
 
 Displays a switch with `name` and `value` texts.
-![Switch in settings application - LittlevGL](lv_settings_sw.gif)
+![Switch in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/blob/master/misc/lv_settings_sw.gif)
 
 The current state is stored in the `state` filed.
 
@@ -66,7 +66,7 @@ In `event_cb` `LV_EVENT_VALUE_CHANGED` is sent when the switch changes state.
 Referred as  `LV_SETTINGS_TYPE_DDLIST`,
 
 Displays a Drop down list with `name` as title and options stored in `value`.
-![Drop down list in settings application - LittlevGL](lv_settings_ddlist.gif)
+![Drop down list in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/blob/master/misc/lv_settings_ddlist.gif)
 
 The current options id is stored in the `state` filed.
 
@@ -76,7 +76,7 @@ In `event_cb` `LV_EVENT_VALUE_CHANGED` is sent when a new option is selected.
 Referred as  `LV_SETTINGS_TYPE_NUMSET`,
 
 Displays the `name` as title, a `value` and `+`, `-` buttons.
-![Drop down list in settings application - LittlevGL](lv_settings_ddlist.gif)
+![Number set in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/blob/master/misc/lv_settings_numset.gif)
 
 The current value is stored in the `state` filed.
 
@@ -87,7 +87,7 @@ In `event_cb` `LV_EVENT_VALUE_CHANGED` is sent when a new option is selected.
 Referred as  `LV_SETTINGS_TYPE_SLIDER`,
 
 Displays the `name` as title and `value` above a slider.
-![Drop down list in settings application - LittlevGL](lv_settings_slider.gif)
+![Drop down list in settings application - LittlevGL](https://github.com/littlevgl/lv_apps/blob/master/misc/lv_settings_slider.gif)
 
 The sliders range is `[0..255]`. The current value is stored in the `state` filed.
 
@@ -239,5 +239,5 @@ static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 
 ## Examples
 
-See the [lv_ex_settings]() folder for examples.
+See the [lv_ex_settings](https://github.com/littlevgl/lv_apps/tree/master/examples/lv_ex_settings) folder for examples.
  
