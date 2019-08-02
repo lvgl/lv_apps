@@ -237,6 +237,49 @@ static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 }
 ```
 
+## Create a menu
+Once the imtes are intialized the menu can be created with
+```c
+    lv_settings_create(&root_item);
+```
+
+## Styling
+It's recommended to use a theme to make the menu stylish. `lv_theme_night` and `lv_theme_material` work well with it. Before calling `lv_settings_create` a theme can be applied like this:
+```c
+    lv_theme_t *th = lv_theme_material_init(210, NULL);
+
+    /*Try with different theme too*/
+//    lv_theme_t *th = lv_theme_material_init(10, NULL);
+//    lv_theme_t *th = lv_theme_night_init(40, NULL);
+
+    lv_theme_set_current(th);
+    
+    /*Create the settings menu with a root item*/
+    lv_settings_create(&root_item);
+
+```
+
+## Use with keyboard
+The settingsmmenu workd well with keybords too using LittlevGL's [group system](https://docs.littlevgl.com/en/html/overview/indev.html#keypad-and-encoder). Once you have a group is created it can be set in the application. After that, the relevant objects of the items will be automatically added to the group. It workw with `LV_INDEV_TYPE_KEYPAD` and `LV_INDEV_TYPE_ENCODER` too.
+```c
+/*Add keyboard or mouswheel input devices if enabled*/
+keyboard_init();
+lv_indev_drv_t indev_drv;
+lv_indev_drv_init(&indev_drv);          /*Basic initialization*/
+indev_drv.type = LV_INDEV_TYPE_KEYPAD;
+indev_drv.read_cb = keyboard_read;         /*This function will be called periodically (by the library) to get the mouse position and state*/
+
+lv_indev_t * indev = lv_indev_drv_register(&indev_drv);
+
+lv_group_t * g = lv_group_create();
+lv_indev_set_group(indev, g);
+
+lv_settings_set_group(g);
+
+/*Create the settings menu with a root item*/
+lv_settings_create(&root_item);
+```
+
 ## Examples
 
 See the [lv_ex_settings](https://github.com/littlevgl/lv_apps/tree/master/examples/lv_ex_settings) folder for examples.
