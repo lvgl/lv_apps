@@ -41,6 +41,7 @@ typedef struct {
     int32_t state;              /*The current state, e.g. slider's value, switch state as a number */
     lv_event_cb_t event_cb;
     lv_obj_t * cont;
+    void * user_data;
 }lv_settings_item_t;
 
 

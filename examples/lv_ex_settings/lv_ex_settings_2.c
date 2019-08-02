@@ -6,7 +6,6 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "lv_ex_settings_2.h"
 #include "../../src/lv_settings/lv_settings.h"
 #include "lv_drivers/indev/keyboard.h"
 #include "lv_drivers/indev/mousewheel.h"
@@ -19,17 +18,35 @@
 #endif
 
 #ifndef LV_SETTINGS_MOUSEWHEEL
-#define LV_SETTINGS_MOUSEWHEEL 1
+#define LV_SETTINGS_MOUSEWHEEL 0
 #endif
 
 /**********************
  *      TYPEDEFS
  **********************/
+typedef enum {
+    MOTOR_ITEM_RPM = 0,
+    MOTOR_ITEM_CURRENT,
+    MOTOR_ITEM_TYPE,
+    MOTOR_ITEM_PROTECT,
+    MOTOR_ITEM_TEST,
+}motor_item_t;
+
+typedef enum {
+    MISC_ITEM_TIME = 0,
+    MISC_ITEM_BRIGHTNESS,
+}misc_item_t;
+
+typedef enum {
+    TIME_ITEM_HOURS = 0,
+    TIME_ITEM_MINS,
+}time_item_t;
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
 static void root_event_cb(lv_obj_t * btn, lv_event_t e);
+static void main_menu_event_cb(lv_obj_t * btn, lv_event_t e);
 static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e);
 static void misc_menu_event_cb(lv_obj_t * btn, lv_event_t e);
 static void time_menu_event_cb(lv_obj_t * btn, lv_event_t e);
@@ -43,36 +60,44 @@ static lv_settings_item_t root_item = {.name = "Settings", .value = "", .event_c
 
 static lv_settings_item_t main_menu_items[] =
 {
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Motor settings", .value="Current, RPM, etc", .event_cb = motor_menu_event_cb},
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Misc. settings", .value="Time, brightness, etc.", .event_cb = misc_menu_event_cb},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Motor settings", .value="Current, RPM, etc", .event_cb = main_menu_event_cb},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Misc. settings", .value="Time, brightness, etc.", .event_cb = main_menu_event_cb},
        {.type = LV_SETTINGS_TYPE_INV},     /*Mark the last item*/
 };
 
+static char max_rpm_value[8];
+static char max_current_value[8];
+/*Follow the order of `motor_item_t`*/
 static lv_settings_item_t motor_menu_items[] = {
-        {.type = LV_SETTINGS_TYPE_SLIDER, .name = "Max RPM", .value = "0RPM", .state = 0, .event_cb = motor_menu_event_cb},
-        {.type = LV_SETTINGS_TYPE_NUMSET, .name = "Max Current", .value = "1A", .state = 1, .event_cb = motor_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_SLIDER, .name = "Max RPM", .value = max_rpm_value, .event_cb = motor_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_NUMSET, .name = "Max Current", .value = max_current_value, .event_cb = motor_menu_event_cb},
         {.type = LV_SETTINGS_TYPE_DDLIST, .name = "Motor type", .value = "Type 1\n"
                                                                          "Type 2\n"
                                                                          "Type 3",
          .event_cb = motor_menu_event_cb},
-        {.type = LV_SETTINGS_TYPE_SW, .name = "Short circuit protect", .value = "Not protected", .event_cb = motor_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_SW, .name = "Short circuit protect", .value = "", .event_cb = motor_menu_event_cb},
         {.type = LV_SETTINGS_TYPE_BTN, .name = "Test motor", .value = "Start", .event_cb = motor_menu_event_cb},
         {.type = LV_SETTINGS_TYPE_INV},     /*Mark the last item*/
 };
 
 
-static char time_buf[16] = {"12:30"};
+static char time_value[8];
+static char brightness_value[8];
+/*Follow the order of `mics_item_t`*/
 static lv_settings_item_t misc_menu_items[] =
 {
-        {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Time", .value=time_buf, .event_cb = time_menu_event_cb},
-        {.type = LV_SETTINGS_TYPE_SLIDER, .name="Brightness", .value="70%", .state = 70*256/100, .event_cb = misc_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Time", .value=time_value, .event_cb = misc_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_SLIDER, .name="Brightness", .value=brightness_value, .event_cb = misc_menu_event_cb},
         {.type=LV_SETTINGS_TYPE_INV},       /*Mark the last item*/
 };
 
+static char hours_value[3];
+static char mins_value[3];
+/*Follow the order of `time_item_t`*/
 static lv_settings_item_t time_menu_items[] =
 {
-        {.type = LV_SETTINGS_TYPE_NUMSET, .name="Hour", .value="12", .state = 12, .event_cb = time_menu_event_cb},
-        {.type = LV_SETTINGS_TYPE_NUMSET, .name="Minute", .value="30", .state = 30, .event_cb = time_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_NUMSET, .name="Hour", .value=hours_value, .event_cb = time_menu_event_cb},
+        {.type = LV_SETTINGS_TYPE_NUMSET, .name="Minute", .value=mins_value, .event_cb = time_menu_event_cb},
         {.type=LV_SETTINGS_TYPE_INV},    /*Mark the last item*/
 };
 
@@ -122,10 +147,49 @@ void lv_ex_settings_2(void)
 #endif
 
 
+    /*Load the default values*/
+    lv_settings_item_t * i;
+
+    /*Motor menu*/
+    i = &motor_menu_items[MOTOR_ITEM_RPM];
+    i->state = 80;
+    sprintf(i->value, "%dRPM", i->state);
+
+
+    i = &motor_menu_items[MOTOR_ITEM_CURRENT];
+    i->state = 3;
+    sprintf(i->value, "%dA", i->state);
+
+    i = &motor_menu_items[MOTOR_ITEM_TYPE];
+    i->state = 1;
+
+    i = &motor_menu_items[MOTOR_ITEM_PROTECT];
+    i->state = 0;
+    i->value = "Not protected";
+
+    i = &motor_menu_items[MOTOR_ITEM_TEST];
+    i->value = "Start";
+
+    /*Time menu*/
+    i = &time_menu_items[TIME_ITEM_HOURS];
+    i->state  = 10;
+    sprintf(i->value, "%d", i->state);
+
+    i = &time_menu_items[TIME_ITEM_MINS];
+    i->state  = 35;
+    sprintf(i->value, "%d", i->state);
+
+    /*Misc menu*/
+    i = &misc_menu_items[MISC_ITEM_BRIGHTNESS];
+    i->state = 128;
+    sprintf(i->value, "%d%%", (i->state * 100) / 256);
+
+    i = &misc_menu_items[MISC_ITEM_TIME];
+    sprintf(i->value, "%d:%d", time_menu_items[TIME_ITEM_HOURS].state, time_menu_items[TIME_ITEM_MINS].state);
+
+
     /*Create the settings menu with a root item*/
     lv_settings_create(&root_item);
-
-
 }
 
 /**********************
@@ -134,7 +198,9 @@ void lv_ex_settings_2(void)
 
 static void root_event_cb(lv_obj_t * btn, lv_event_t e)
 {
-   /*If the root element was clicked or asks for refresh create a main menu*/
+    (void)btn;  /*Unused*/
+
+    /*If the root element was clicked or asks for create a main menu*/
     if(e == LV_EVENT_CLICKED || e == LV_EVENT_REFRESH) {
         /*Get the caller item*/
         lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
@@ -150,42 +216,58 @@ static void root_event_cb(lv_obj_t * btn, lv_event_t e)
     }
 }
 
-static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
+static void main_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 {
+    (void)btn;  /*Unused*/
+
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    /*If the item in the main menu was clicked or it asks refresh create a Motor settings menu*/
-    if((e == LV_EVENT_REFRESH || e == LV_EVENT_CLICKED) && strcmp(act_item->name, "Motor settings") == 0) {
-        /*Create a new page in the menu*/
-        lv_obj_t * page = lv_settings_create_page(act_item);
+    /*If an item in the main menu was clicked or it was asked to refresh create it's menu*/
+    if(e == LV_EVENT_REFRESH || e == LV_EVENT_CLICKED) {
+        if(strcmp(act_item->name, "Motor settings") == 0) {
+            /*Create a new page in the menu*/
+            lv_obj_t * page = lv_settings_create_page(act_item);
 
-        /*Add the motor_menu_items*/
-        uint32_t i;
-        for(i = 0; motor_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
-            lv_settings_add(page, &motor_menu_items[i]);
+            /*Add the motor_menu_items*/
+            uint32_t i;
+            for(i = 0; motor_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
+                lv_settings_add(page, &motor_menu_items[i]);
+            }
         }
+        else if(strcmp(act_item->name, "Misc. settings") == 0) {
+            /*Create a new page in the menu*/
+            lv_obj_t * page = lv_settings_create_page(act_item);
 
-        return;
+            /*Add the misc_menu_items*/
+            uint32_t i;
+            for(i = 0; misc_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
+                lv_settings_add(page, &misc_menu_items[i]);
+            }
+        }
     }
+}
+
+static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
+{
+    (void)btn;  /*Unused*/
+
+    /*Get the caller item*/
+    lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
     /*Handle the events of the Motor settings items*/
     if(e == LV_EVENT_VALUE_CHANGED) {
         if(strcmp("Max RPM", act_item->name) == 0) {
-            static char buf[32];
-            sprintf(buf, "%dRPM", act_item->state);
-            act_item->value = buf;
+            sprintf(act_item->value, "%dRPM", act_item->state);
             lv_settings_refr(act_item);
         }
         if(strcmp("Max Current", act_item->name) == 0) {
-            static char buf[32];
             if(act_item->state > 10) act_item->state = 10;
             if(act_item->state < 1) act_item->state = 1;
-            sprintf(buf, "%dA", act_item->state);
-            act_item->value = buf;
+            sprintf(act_item->value, "%dA", act_item->state);
             lv_settings_refr(act_item);
         }
-        else if(strcmp("The drop down", act_item->name) == 0) {
+        else if(strcmp("Motor type", act_item->name) == 0) {
             printf("ddlist: %d\n", act_item->state);
         }
         else if(strcmp("Short circuit protect", act_item->name) == 0) {
@@ -196,14 +278,9 @@ static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
     }
     else if(e == LV_EVENT_CLICKED) {
         if(strcmp("Test motor", act_item->name) == 0) {
-            act_item->name = "Testing";
-            act_item->value = "Stop";
-            lv_settings_refr(act_item);
-        }
+            if(strcmp("Start", act_item->value) == 0) act_item->value = "Stop";
+            else act_item->value = "Start";
 
-        else if(strcmp("Testing", act_item->name) == 0) {
-            act_item->name = "Test motor";
-            act_item->value = "Start";
             lv_settings_refr(act_item);
         }
     }
@@ -211,29 +288,27 @@ static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 
 static void misc_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 {
+    (void)btn;  /*Unused*/
+
     /*Get the caller act_item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    /*If the item in the main menu was clicked or it asks refresh create a Motor settings menu*/
-    if((e == LV_EVENT_REFRESH || e == LV_EVENT_CLICKED) && strcmp(act_item->name, "Misc. settings") == 0) {
-                /*Create a new page in the menu*/
-        lv_obj_t * page = lv_settings_create_page(act_item);
+    /*Handle the events of the Misc menu items*/
+    if(e == LV_EVENT_CLICKED || e == LV_EVENT_REFRESH) {
+        if(strcmp(act_item->name, "Time") == 0) {
+            /*Create a new page in the menu*/
+            lv_obj_t * page = lv_settings_create_page(act_item);
 
-        /*Add the misc_menu_items*/
-        uint32_t i;
-        for(i = 0; misc_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
-            lv_settings_add(page, &misc_menu_items[i]);
+            /*Add the items*/
+            uint32_t i;
+            for(i = 0; time_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
+                lv_settings_add(page, &time_menu_items[i]);
+            }
         }
-
-        return;
     }
-
-    /*Handle the events of the Motor settings items*/
-    if(e == LV_EVENT_VALUE_CHANGED) {
+    else if(e == LV_EVENT_VALUE_CHANGED) {
         if(strcmp("Brightness", act_item->name) == 0) {
-            static char buf[32];
-            sprintf(buf, "%d%%", (act_item->state * 100) / 256);
-            act_item->value = buf;
+            sprintf(act_item->value, "%d%%", (act_item->state * 100) / 256);
             lv_settings_refr(act_item);
         }
     }
@@ -241,45 +316,28 @@ static void misc_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 
 static void time_menu_event_cb(lv_obj_t * obj, lv_event_t e)
 {
+    (void)obj;  /*Unused*/
+
     /*Get the caller act_item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    /*If the item in the main menu was clicked or it asks refresh create a Motor settings menu*/
-    if((e == LV_EVENT_REFRESH || e == LV_EVENT_CLICKED) && strcmp(act_item->name, "Time") == 0) {
-
-        /*Create a new page in the menu*/
-        lv_obj_t * page = lv_settings_create_page(act_item);
-
-        /*Add the items*/
-        uint32_t i;
-        for(i = 0; time_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
-            lv_settings_add(page, &time_menu_items[i]);
-        }
-
-        return;
-    }
-
-    /*Handle the events of the Motor settings items*/
+    /*Handle the events of the Time settings items*/
     if(e == LV_EVENT_VALUE_CHANGED) {
         if(strcmp("Hour", act_item->name) == 0) {
-            static char buf[32];
             if(act_item->state > 23) act_item->state = 0;
             if(act_item->state < 0) act_item->state = 23;
 
-            sprintf(buf, "%d", act_item->state);
-            act_item->value = buf;
+            sprintf(act_item->value, "%d", act_item->state);
             lv_settings_refr(act_item);
 
             sprintf(misc_menu_items[0].value, "%02d:%02d", time_menu_items[0].state, time_menu_items[1].state);
 
         }
         else if(strcmp("Minute", act_item->name) == 0) {
-            static char buf[32];
             if(act_item->state > 59) act_item->state = 0;
             if(act_item->state < 0) act_item->state = 59;
 
-            sprintf(buf, "%d", act_item->state);
-            act_item->value = buf;
+            sprintf(act_item->value, "%d", act_item->state);
             lv_settings_refr(act_item);
 
             sprintf(misc_menu_items[0].value, "%02d:%02d", time_menu_items[0].state, time_menu_items[1].state);
