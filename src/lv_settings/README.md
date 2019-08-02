@@ -1,18 +1,18 @@
 # Settings menu
 
-**A collections of ready to use components to create smartphone like menus**
+**A collections of ready to use components to create smartphone-like menus**
 
 ![Settings menu with LittlevGL](../../examples/lv_ex_settings/lv_ex_settings_2.gif)
 
 ## Overview
 
-The menu build up from 
+The menu build-up from 
 1. A *root item* which opens the menu on click
 2. Pages of the menu
 
-There is a back button every page to go back to the previous page or on the last page to close the menu.
+There is a back button every page to go back to the previous page or on the first page to close the menu.
 
-These descriptor element of menu items is `lv_settings_item_t`. It has the following fields:
+The descriptor elements of menu items have `lv_settings_item_t` type. It has the following fields:
 - **type** of the item (`LV_SETTINGS_TYPE_...`). See below.
 - **name** name of the item as a string
 - **value** current value of the item as a string
@@ -40,7 +40,7 @@ The list buttons don't use `state` so it can be freely if required to keep track
 
 In `event_cb`
 - `LV_EVENT_CLICKED`, `LV_EVENT_SHORT_CLICKED`, `LV_EVENT_LONG_PRESSED` is sent when the list button is clicked 
-- `LV_EVENT_REFRESH` is sent when the new page, open by this button, needs to be created again. (When go to the created page with *Back* button)
+- `LV_EVENT_REFRESH` is sent when the new page, opened by this button, needs to be created again. (When going back to the created page with *Back* button)
 
 #### Button
 Referred as  `LV_SETTINGS_TYPE_BTN`,
@@ -173,11 +173,11 @@ void root_event_cb(lv_obj_t * btn, lv_event_t e)
 
 As it's shown in the example a new page is created with `lv_settings_create_page` from the `act_item`. 
 `act_item`'s `name` will be the title of the new page. 
-If further pages are opened from this page, and the "Back" button in child on a child page,  `LV_EVENT_REFRESH` will be sent to `act_item` to create the page and items again.
+If further pages are opened from this page, and the "Back" button is clicked on a child page,  `LV_EVENT_REFRESH` will be sent to `act_item` to create the page and items again.
 
 ### Item events
 Typically, items other than `LV_SETTINGS_TYPE_LIST_BTN`, are not used to create new pages. 
-The event callback of the items receive `LV_EVENT_CLICKED` or `LV_EVENT_VALUE_CHANGE` depending on the type of the item.
+The event callback of the items receives `LV_EVENT_CLICKED` or `LV_EVENT_VALUE_CHANGE` depending on the type of the item.
 
 It's up to the developer how to organize the events but there are few typical patterns: 
 1. Create an event function for every item. For example `slider1_event_cb`, `slider2_event_cb`, `slider3_event_cb`...
@@ -191,7 +191,7 @@ static void slider_event_cb(lv_obj_t * btn, lv_event_t e)
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    /*If the item in the main menu was clicked or it asks refresh create a Motor settings menu*/
+    /*If the item in the main menu was clicked or it asks to refresh create a Motor settings menu*/
     if(e == LV_EVENT_VALUE_CHANGED) {
         if(strcmp("Slider1", act_item->name) == 0) {
             /*Do somethind*/
@@ -206,9 +206,15 @@ static void slider_event_cb(lv_obj_t * btn, lv_event_t e)
 ```
 3. Use the `user_data` to process the event. 
 
+### Add the root menu button
+Once the items are initialized the menu can be created with
+```c
+    lv_settings_create(&root_item);
+```
+
 ## Refresh items' data
 In the event function probably some data of the item should be refreshed. 
-Mainly the `value` string formatted as required and the `state` if it's needs to be limited.
+Mainly the `value` string formatted as required and the `state` if it's needs to be limited or overwritten.
 The items can be refreshed with `lv_settings_refr(act_item);`.
 
 For example for a "Number setting" item:
@@ -235,12 +241,6 @@ static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
         }
     }
 }
-```
-
-## Create a menu
-Once the imtes are intialized the menu can be created with
-```c
-    lv_settings_create(&root_item);
 ```
 
 ## Styling
