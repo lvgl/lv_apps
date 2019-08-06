@@ -39,9 +39,11 @@ typedef struct {
     char * name;          /*Name or title of the item*/
     char * value;         /*The current value as string*/
     int32_t state;              /*The current state, e.g. slider's value, switch state as a number */
-    lv_event_cb_t event_cb;
     lv_obj_t * cont;
-    void * user_data;
+    union {
+        void * ptr;
+        int32_t int32;
+    }user_data;
 }lv_settings_item_t;
 
 
@@ -55,7 +57,7 @@ typedef struct {
  * `lv_settings_menu_item_t root_item = {.name = "Settings", .event_cb = root_event_cb};`
  * @return the created settings button
  */
-lv_obj_t * lv_settings_create(lv_settings_item_t * root_item);
+lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t event_cb);
 
 /**
  * Automatically add the item to a group to allow navigation with keypad or encoder.
@@ -66,20 +68,17 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item);
 void lv_settings_set_group(lv_group_t * g);
 
 /**
- * Create a new settings page for an item
- * @param item pointer to a an `lv_settings_item_t` item.
- * `item->name` will be the title of the page.
- * `LV_EVENT_REFRESH` will be sent to `item->event_cb` to create the page again when the back button is pressed.
- * @return pointer to the created page
+ * Create a new page ask `event_cb` to add the item with `LV_EVENT_REFRESH`
+ * @param parent_item pointer to an item which open the the new page. Its `name` will be the title
+ * @param event_cb event handler of the menu page
  */
-lv_obj_t * lv_settings_create_page(lv_settings_item_t * item);
+void lv_settings_open_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb);
 
 /**
  * Add a list element to the page. With `item->name` and `item->value` texts.
  * @param page pointer to a menu page created by `lv_settings_create_page`
- * @param item pointer to a an `lv_settings_item_t` item.
  */
-void lv_settings_add(lv_obj_t * page, lv_settings_item_t * item);
+void lv_settings_add(lv_settings_item_t * item);
 
 
 /**

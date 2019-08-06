@@ -18,21 +18,43 @@
  *      TYPEDEFS
  **********************/
 
+
 typedef struct
 {
     lv_btn_ext_t btn;
     lv_settings_item_t * item;
-}liste_ext_t;
+    lv_event_cb_t event_cb;
+}root_ext_t;
+
+typedef struct
+{
+    lv_btn_ext_t btn;
+    lv_settings_item_t * item;
+}list_btn_ext_t;
 
 typedef struct
 {
     lv_cont_ext_t cont;
     lv_settings_item_t * item;
+}item_cont_ext_t;
+
+typedef struct
+{
+    lv_cont_ext_t cont;
+    lv_event_cb_t event_cb;
+    lv_obj_t * menu_page;
 }menu_cont_ext_t;
+
+typedef struct {
+    lv_event_cb_t event_cb;
+    lv_settings_item_t * item;
+}histroy_t;
+
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
+static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb);
 
 static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item);
 static void add_btn(lv_obj_t * page, lv_settings_item_t * item);
@@ -48,6 +70,7 @@ static void refr_ddlist(lv_settings_item_t * item);
 static void refr_numset(lv_settings_item_t * item);
 static void refr_slider(lv_settings_item_t * item);
 
+static void root_event_cb(lv_obj_t * btn, lv_event_t e);
 static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e);
 static void slider_event_cb(lv_obj_t * slider, lv_event_t e);
 static void sw_event_cb(lv_obj_t * sw, lv_event_t e);
@@ -83,7 +106,7 @@ static lv_group_t * group;
  * `lv_settings_menu_item_t root_item = {.name = "Settings", .event_cb = root_event_cb};`
  * @return the created settings button
  */
-lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
+lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t event_cb)
 {
     lv_theme_t *th = lv_theme_get_current();
     if(th) {
@@ -106,10 +129,11 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
 
     lv_obj_t * menu_btn = lv_btn_create(lv_scr_act(), NULL);
     lv_btn_set_fit(menu_btn, LV_FIT_TIGHT);
-    liste_ext_t * ext = lv_obj_allocate_ext_attr(menu_btn, sizeof(liste_ext_t));
+    root_ext_t * ext = lv_obj_allocate_ext_attr(menu_btn, sizeof(root_ext_t));
     ext->item = root_item;
+    ext->event_cb = event_cb;
 
-    lv_obj_set_event_cb(menu_btn, list_btn_event_cb);
+    lv_obj_set_event_cb(menu_btn, root_event_cb);
     if(group) lv_group_add_obj(group, menu_btn);
 
     lv_obj_t * menu_label = lv_label_create(menu_btn, NULL);
@@ -117,7 +141,7 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item)
 
     lv_obj_set_pos(menu_btn, 0, 0);
 
-    lv_ll_init(&history_ll, sizeof(lv_settings_item_t));
+    lv_ll_init(&history_ll, sizeof(histroy_t));
 
     return menu_btn;
 }
@@ -134,85 +158,31 @@ void lv_settings_set_group(lv_group_t * g)
 }
 
 /**
- * Create a new settings page for an item
- * @param item pointer to a an `lv_settings_item_t` item.
- * `item->name` will be the title of the page.
- * `LV_EVENT_REFRESH` will be sent to `item->event_cb` to create the page again when the back button is pressed.
- * @return pointer to the created page
+ * Create a new page ask `event_cb` to add the item with `LV_EVENT_REFRESH`
+ * @param parent_item pointer to an item which open the the new page. Its `name` will be the title
+ * @param event_cb event handler of the menu page
  */
-lv_obj_t * lv_settings_create_page(lv_settings_item_t * item)
+void lv_settings_open_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb)
 {
-    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), LV_SETTINGS_MAX_WIDTH);
+    /*Create a new page in the menu*/
+    create_page(parent_item, event_cb);
 
-    lv_obj_t * old_menu_cont = act_cont;
-
-    act_cont = lv_cont_create(lv_scr_act(), NULL);
-    lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
-    lv_obj_set_size(act_cont, w, lv_obj_get_height(lv_scr_act()));
-
-    lv_obj_t * header = lv_cont_create(act_cont, NULL);
-    lv_cont_set_style(header, LV_CONT_STYLE_MAIN, &lv_style_transp_fit);
-    lv_cont_set_fit2(header, LV_FIT_NONE, LV_FIT_TIGHT);
-    lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
-    lv_obj_set_width(header, lv_obj_get_width(act_cont));
-
-    lv_obj_t * header_back_btn = lv_btn_create(header, NULL);
-    lv_btn_set_fit(header_back_btn, LV_FIT_TIGHT);
-    lv_obj_set_event_cb(header_back_btn, header_back_event_cb);
-    if(group) lv_group_add_obj(group, header_back_btn);
-    lv_group_focus_obj(header_back_btn);
-
-    lv_obj_t * header_back_label = lv_label_create(header_back_btn, NULL);
-    lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
-
-    lv_obj_t * header_title = lv_label_create(header, NULL);
-    lv_label_set_text(header_title, item->name);
-
-    lv_obj_set_pos(header, 0, 0);
-
-    lv_obj_t * page = lv_page_create(act_cont, NULL);
-    lv_page_set_style(page, LV_PAGE_STYLE_BG, &style_bg);
-    lv_page_set_style(page, LV_PAGE_STYLE_SCRL, &lv_style_transp_tight);
-    lv_page_set_scrl_layout(page, LV_LAYOUT_COL_M);
-    lv_list_set_edge_flash(page, true);
-    lv_obj_set_size(page, lv_obj_get_width(act_cont), lv_obj_get_height(lv_scr_act()) - lv_obj_get_height(header));
-    lv_obj_align(page, header, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
-
-    lv_settings_item_t * new_node = lv_ll_ins_head(&history_ll);
-    memcpy(new_node, item, sizeof(lv_settings_item_t));
-
-    /*Delete the old menu container after some time*/
-    if(old_menu_cont) {
-        lv_anim_t a;
-        lv_anim_init(&a);
-        lv_anim_set_exec_cb(&a, old_menu_cont, NULL);
-        lv_anim_set_values(&a, 0, 1);
-        lv_anim_set_path_cb(&a, lv_anim_path_step);
-        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
-        lv_anim_set_ready_cb(&a, old_cont_del_cb);
-        lv_anim_create(&a);
-    }
-
-    /*Float in the new menu*/
-    lv_anim_t a;
-    lv_anim_init(&a);
-    lv_anim_set_exec_cb(&a, act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
-    lv_anim_set_values(&a, -lv_obj_get_width(act_cont), 0);
-    lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
-    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-    lv_anim_create(&a);
-
-    return page;
+    /*Add the items*/
+    lv_event_send_func(event_cb, NULL, LV_EVENT_REFRESH, parent_item);
 }
-
 
 /**
  * Add a list element to the page. With `item->name` and `item->value` texts.
- * @param page pointer to a menu page created by `lv_settings_create_page`
  * @param item pointer to a an `lv_settings_item_t` item.
  */
-void lv_settings_add(lv_obj_t * page, lv_settings_item_t * item)
+void lv_settings_add(lv_settings_item_t * item)
 {
+    if(act_cont == NULL) return;
+
+    menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+    lv_obj_t * page = ext->menu_page;
+
+
     switch(item->type) {
     case LV_SETTINGS_TYPE_LIST_BTN: add_list_btn(page, item); break;
     case LV_SETTINGS_TYPE_BTN:      add_btn(page, item); break;
@@ -249,6 +219,82 @@ void lv_settings_refr(lv_settings_item_t * item)
  **********************/
 
 /**
+ * Create a new settings container with header, hack button ,title and an empty page
+ * @param item pointer to a an `lv_settings_item_t` item.
+ * `item->name` will be the title of the page.
+ * `LV_EVENT_REFRESH` will be sent to `item->event_cb` to create the page again when the back button is pressed.
+ */
+static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb)
+{
+    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), LV_SETTINGS_MAX_WIDTH);
+
+    lv_obj_t * old_menu_cont = act_cont;
+
+    act_cont = lv_cont_create(lv_scr_act(), NULL);
+    lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
+    lv_obj_set_size(act_cont, w, lv_obj_get_height(lv_scr_act()));
+
+    menu_cont_ext_t * ext = lv_obj_allocate_ext_attr(act_cont, sizeof(menu_cont_ext_t));
+    ext->event_cb = event_cb;
+    ext->menu_page = NULL;
+
+    lv_obj_t * header = lv_cont_create(act_cont, NULL);
+    lv_cont_set_style(header, LV_CONT_STYLE_MAIN, &lv_style_transp_fit);
+    lv_cont_set_fit2(header, LV_FIT_NONE, LV_FIT_TIGHT);
+    lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
+    lv_obj_set_width(header, lv_obj_get_width(act_cont));
+
+    lv_obj_t * header_back_btn = lv_btn_create(header, NULL);
+    lv_btn_set_fit(header_back_btn, LV_FIT_TIGHT);
+    lv_obj_set_event_cb(header_back_btn, header_back_event_cb);
+    if(group) lv_group_add_obj(group, header_back_btn);
+    lv_group_focus_obj(header_back_btn);
+
+    lv_obj_t * header_back_label = lv_label_create(header_back_btn, NULL);
+    lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
+
+    lv_obj_t * header_title = lv_label_create(header, NULL);
+    lv_label_set_text(header_title, parent_item->name);
+
+    lv_obj_set_pos(header, 0, 0);
+
+    lv_obj_t * page = lv_page_create(act_cont, NULL);
+    lv_page_set_style(page, LV_PAGE_STYLE_BG, &style_bg);
+    lv_page_set_style(page, LV_PAGE_STYLE_SCRL, &lv_style_transp_tight);
+    lv_page_set_scrl_layout(page, LV_LAYOUT_COL_M);
+    lv_list_set_edge_flash(page, true);
+    lv_obj_set_size(page, lv_obj_get_width(act_cont), lv_obj_get_height(lv_scr_act()) - lv_obj_get_height(header));
+    lv_obj_align(page, header, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+
+    ext->menu_page = page;
+
+    histroy_t * new_node = lv_ll_ins_head(&history_ll);
+    new_node->event_cb = event_cb;
+    new_node->item = parent_item;
+
+    /*Delete the old menu container after some time*/
+    if(old_menu_cont) {
+        lv_anim_t a;
+        lv_anim_init(&a);
+        lv_anim_set_exec_cb(&a, old_menu_cont, NULL);
+        lv_anim_set_values(&a, 0, 1);
+        lv_anim_set_path_cb(&a, lv_anim_path_step);
+        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
+        lv_anim_set_ready_cb(&a, old_cont_del_cb);
+        lv_anim_create(&a);
+    }
+
+    /*Float in the new menu*/
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_exec_cb(&a, act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
+    lv_anim_set_values(&a, -lv_obj_get_width(act_cont), 0);
+    lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+    lv_anim_create(&a);
+}
+
+/**
  * Add a list element to the page. With `item->name` and `item->value` texts.
  * @param page pointer to a menu page created by `lv_settings_create_page`
  * @param item pointer to a an `lv_settings_item_t` item.
@@ -262,7 +308,7 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_set_event_cb(liste, list_btn_event_cb);
     if(group) lv_group_add_obj(group, liste);
 
-    liste_ext_t * ext = lv_obj_allocate_ext_attr(liste, sizeof(liste_ext_t));
+    list_btn_ext_t * ext = lv_obj_allocate_ext_attr(liste, sizeof(list_btn_ext_t));
     ext->item = item;
 
     lv_obj_t * name = lv_label_create(liste, NULL);
@@ -495,6 +541,17 @@ static void refr_slider(lv_settings_item_t * item)
     if(lv_slider_get_value(slider) != item->state) lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
 }
 
+static void root_event_cb(lv_obj_t * btn, lv_event_t e)
+{
+
+    if(e == LV_EVENT_CLICKED) {
+        root_ext_t * ext = lv_obj_get_ext_attr(btn);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(ext->event_cb, NULL, e,  ext->item);
+    }
+}
+
 /**
  * List button event callback. The following events are sent:
  * - `LV_EVENT_CLICKED`
@@ -506,19 +563,18 @@ static void refr_slider(lv_settings_item_t * item)
 static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
 {
     /*Save the menu item because the button will be deleted in `menu_cont_create` and `ext` will be invalid */
-    liste_ext_t * ext = lv_obj_get_ext_attr(btn);
+    list_btn_ext_t * item_ext = lv_obj_get_ext_attr(btn);
 
     if(e == LV_EVENT_CLICKED ||
        e == LV_EVENT_SHORT_CLICKED ||
        e == LV_EVENT_LONG_PRESSED) {
-        /*If the button doesn't handle events do nothing.*/
-        if(ext->item->event_cb == NULL) return;
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
 
         /*Call the button's event handler to create the menu*/
-        lv_event_send_func(ext->item->event_cb, NULL, e, ext->item);
+        lv_event_send_func(menu_ext->event_cb, NULL, e, item_ext->item);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -531,14 +587,17 @@ static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
 static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
 {
     lv_obj_t * cont = lv_obj_get_parent(slider);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
 
     if(e == LV_EVENT_VALUE_CHANGED) {
-        ext->item->state = lv_slider_get_value(slider);
-        lv_event_send_func(ext->item->event_cb, slider, e, ext->item);
+        item_ext->item->state = lv_slider_get_value(slider);
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(menu_ext->event_cb, NULL, e, item_ext->item);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -550,15 +609,18 @@ static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
 static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
 {
     lv_obj_t * cont = lv_obj_get_parent(sw);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
 
     if(e == LV_EVENT_VALUE_CHANGED) {
 
-        ext->item->state = lv_sw_get_state(sw);
-        lv_event_send_func(ext->item->event_cb, sw, e, ext->item);
+        item_ext->item->state = lv_sw_get_state(sw);
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(menu_ext->event_cb, NULL, e, item_ext->item);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -570,13 +632,16 @@ static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
 static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
 {
     lv_obj_t * cont = lv_obj_get_parent(obj);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
 
     if(e == LV_EVENT_CLICKED) {
-        lv_event_send_func(ext->item->event_cb, obj, e, ext->item);
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(menu_ext->event_cb, NULL, e, item_ext->item);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -588,14 +653,18 @@ static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
 static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
 {
     lv_obj_t * cont = lv_obj_get_parent(ddlist);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
-    if(e == LV_EVENT_VALUE_CHANGED) {
-        ext->item->state = lv_ddlist_get_selected(ddlist);
+    item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
 
-        lv_event_send_func(ext->item->event_cb, ddlist, e, ext->item);
+    if(e == LV_EVENT_VALUE_CHANGED) {
+        item_ext->item->state = lv_ddlist_get_selected(ddlist);
+
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(menu_ext->event_cb, NULL, e, item_ext->item);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -607,23 +676,26 @@ static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
 static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
 {
     lv_obj_t * cont = lv_obj_get_parent(btn);
-    menu_cont_ext_t * ext = lv_obj_get_ext_attr(cont);
+    item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
     if(e == LV_EVENT_SHORT_CLICKED || e == LV_EVENT_LONG_PRESSED_REPEAT) {
 
         lv_obj_t * label = lv_obj_get_child(btn, NULL);
-        if(strcmp(lv_label_get_text(label), LV_SYMBOL_MINUS) == 0) ext->item->state--;
-        else ext->item->state ++;
+        if(strcmp(lv_label_get_text(label), LV_SYMBOL_MINUS) == 0) item_ext->item->state--;
+        else item_ext->item->state ++;
 
-        lv_event_send_func(ext->item->event_cb, NULL, LV_EVENT_VALUE_CHANGED, ext->item);
+        menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
+
+        /*Call the button's event handler to create the menu*/
+        lv_event_send_func(menu_ext->event_cb, NULL, LV_EVENT_VALUE_CHANGED, item_ext->item);
 
         /*Get the value label*/
         label = lv_obj_get_child(cont, NULL);
         label = lv_obj_get_child(cont, label);
 
-        lv_label_set_text(label, ext->item->value);
+        lv_label_set_text(label, item_ext->item->value);
     }
     else if(e == LV_EVENT_DELETE) {
-        ext->item->cont = NULL;
+        item_ext->item->cont = NULL;
     }
 }
 
@@ -641,21 +713,21 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
     lv_obj_t * old_menu_cont = act_cont;
 
     /*Delete the current item form the history. The goal is the previous.*/
-    lv_settings_item_t * prev_item;
-    prev_item = lv_ll_get_head(&history_ll);
-    if(prev_item) {
-        lv_ll_rem(&history_ll, prev_item);
-        lv_mem_free(prev_item);
+    histroy_t * act_hist;
+    act_hist = lv_ll_get_head(&history_ll);
+    if(act_hist) {
+        lv_ll_rem(&history_ll, act_hist);
+        lv_mem_free(act_hist);
 
         /*Get the real previous item and open it*/
-        lv_settings_item_t * act_item =  lv_ll_get_head(&history_ll);
+        histroy_t * prev_hist =  lv_ll_get_head(&history_ll);
 
-        if(act_item) {
+        if(prev_hist) {
             /* Create the previous menu.
              * Remove it from the history because `lv_settings_create_page` will add it again */
-            lv_ll_rem(&history_ll, act_item);
-            lv_event_send_func(act_item->event_cb, NULL, LV_EVENT_REFRESH, act_item);
-            lv_mem_free(act_item);
+            lv_ll_rem(&history_ll, prev_hist);
+            lv_settings_open_page( prev_hist->item, prev_hist->event_cb);
+            lv_mem_free(prev_hist);
         }
         else {
             /*No previous menu, so no main container*/
@@ -697,7 +769,7 @@ static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item)
     lv_cont_set_fit2(cont, LV_FIT_FLOOD, LV_FIT_TIGHT);
     lv_obj_set_click(cont, false);
 
-    menu_cont_ext_t * ext = lv_obj_allocate_ext_attr(cont, sizeof(menu_cont_ext_t));
+    item_cont_ext_t * ext = lv_obj_allocate_ext_attr(cont, sizeof(item_cont_ext_t));
     ext->item = item;
     ext->item->cont = cont;
 

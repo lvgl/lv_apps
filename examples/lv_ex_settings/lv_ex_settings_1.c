@@ -37,15 +37,15 @@ static void submenu_event_cb(lv_obj_t * btn, lv_event_t e);
  **********************/
 
 /*Declare items*/
-static lv_settings_item_t root_item = {.name = "Settings", .value = "", .event_cb = root_event_cb};
+static lv_settings_item_t root_item = {.name = "Settings", .value = ""};
 
 static lv_settings_item_t main_menu_items[] =
 {
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Button",          .value="Test button",           .event_cb = main_event_cb},
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Switch",          .value="Test switch",           .event_cb = main_event_cb},
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Drop down list",  .value="Test drop down list",   .event_cb = main_event_cb},
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Number set",      .value="Test number set",       .event_cb = main_event_cb},
-       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Slider",          .value="Test slider",           .event_cb = main_event_cb},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Button",          .value="Test button"},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Switch",          .value="Test switch"},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Drop down list",  .value="Test drop down list"},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Number set",      .value="Test number set"},
+       {.type = LV_SETTINGS_TYPE_LIST_BTN, .name="Slider",          .value="Test slider"},
        {.type = LV_SETTINGS_TYPE_INV},     /*Mark the last item*/
 };
 
@@ -94,7 +94,7 @@ void lv_ex_settings_1(void)
 
 
     /*Create the settings menu with a root item*/
-    lv_settings_create(&root_item);
+    lv_settings_create(&root_item, root_event_cb);
 
 
 }
@@ -107,19 +107,12 @@ static void root_event_cb(lv_obj_t * btn, lv_event_t e)
 {
     (void)btn;  /*Unused*/
 
-    /*If the root element was clicked or asks for refresh create a main menu*/
-    if(e == LV_EVENT_CLICKED || e == LV_EVENT_REFRESH) {
+    if(e == LV_EVENT_CLICKED) {
         /*Get the caller item*/
         lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
         /*Create a new page in the menu*/
-        lv_obj_t * page = lv_settings_create_page(act_item);
-
-        /*Add the items*/
-        uint32_t i;
-        for(i = 0; main_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
-            lv_settings_add(page, &main_menu_items[i]);
-        }
+        lv_settings_open_page(act_item, main_event_cb);
     }
 }
 
@@ -130,31 +123,24 @@ static void main_event_cb(lv_obj_t * btn, lv_event_t e)
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    if(e == LV_EVENT_REFRESH || e == LV_EVENT_CLICKED) {
-       if(strcmp("Button", act_item->name) == 0) {
-           lv_obj_t * page = lv_settings_create_page(act_item);
-
-           static lv_settings_item_t item = {
-                   .type = LV_SETTINGS_TYPE_BTN,
-                   .name = "System test",
-                   .value = "Start",
-                   .event_cb = submenu_event_cb};
-           lv_settings_add(page, &item);
-       }
-       else if(strcmp("Slider", act_item->name) == 0) {
-           lv_obj_t * page = lv_settings_create_page(act_item);
-
-           static char value[32] = {"10 V"};
-           static lv_settings_item_t item = {
-                   .type = LV_SETTINGS_TYPE_SLIDER,
-                   .name = "Voltage",
-                   .value = value,
-                   .state = 10,
-                   .event_cb = submenu_event_cb};
-
-           lv_settings_add(page, &item);
-       }
+    /*Add the items*/
+    if(e == LV_EVENT_REFRESH) {
+        uint32_t i;
+        for(i = 0; main_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
+            lv_settings_add(&main_menu_items[i]);
+        }
    }
+    /* Open submenus.
+     * The submenus will be very simple so use a common event callback for them*/
+    else if(e == LV_EVENT_CLICKED) {
+
+        if(strcmp("Button", act_item->name) == 0) {
+            lv_settings_open_page(act_item, submenu_event_cb);
+        }
+        else if(strcmp("Slider", act_item->name) == 0) {
+            lv_settings_open_page(act_item, submenu_event_cb);
+        }
+    }
 }
 
 static void submenu_event_cb(lv_obj_t * btn, lv_event_t e)
@@ -164,9 +150,31 @@ static void submenu_event_cb(lv_obj_t * btn, lv_event_t e)
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    if(e == LV_EVENT_VALUE_CHANGED) {
+    /*Add items to the submenus*/
+    if(e == LV_EVENT_REFRESH) {
+        if(strcmp("Button", act_item->name) == 0) {
+            static lv_settings_item_t item = {
+                    .type = LV_SETTINGS_TYPE_BTN,
+                    .name = "System test",
+                    .value = "Start"};
+            lv_settings_add(&item);
+        }
+        else if(strcmp("Slider", act_item->name) == 0) {
+
+            static char value[32] = {"100 V"};
+            static lv_settings_item_t item = {
+                    .type = LV_SETTINGS_TYPE_SLIDER,
+                    .name = "Voltage",
+                    .value = value,
+                    .state = 100,};
+
+            lv_settings_add(&item);
+        }
+    }
+    /*Handle the items' events*/
+    else if(e == LV_EVENT_VALUE_CHANGED) {
         if(strcmp("Voltage", act_item->name) == 0) {
-            sprintf(act_item->value, "%d %%", act_item->state);
+            sprintf(act_item->value, "%d V", act_item->state);
             lv_settings_refr(act_item);
         }
     } else if(e == LV_EVENT_CLICKED) {
