@@ -131,15 +131,11 @@ static void main_event_cb(lv_obj_t * btn, lv_event_t e)
         }
    }
     /* Open submenus.
-     * The submenus will be very simple so use a common event callback for them*/
+     * The submenus will be very simple so use a common event callback for them.
+     * `act_item` is the clicked list button in the main menu.
+     * It's name will be the title of the new page*/
     else if(e == LV_EVENT_CLICKED) {
-
-        if(strcmp("Button", act_item->name) == 0) {
-            lv_settings_open_page(act_item, submenu_event_cb);
-        }
-        else if(strcmp("Slider", act_item->name) == 0) {
-            lv_settings_open_page(act_item, submenu_event_cb);
-        }
+        lv_settings_open_page(act_item, submenu_event_cb);
     }
 }
 
@@ -161,12 +157,41 @@ static void submenu_event_cb(lv_obj_t * btn, lv_event_t e)
         }
         else if(strcmp("Slider", act_item->name) == 0) {
 
-            static char value[32] = {"100 V"};
+            static char value[16] = {"100 V"};
             static lv_settings_item_t item = {
                     .type = LV_SETTINGS_TYPE_SLIDER,
                     .name = "Voltage",
                     .value = value,
-                    .state = 100,};
+                    .state = 0};
+
+            lv_settings_add(&item);
+        }
+        else if(strcmp("Switch", act_item->name) == 0) {
+
+            static lv_settings_item_t item = {
+                    .type = LV_SETTINGS_TYPE_SW,
+                    .name = "Valve",
+                    .value = "Closed",
+                    .state = 0};
+
+            lv_settings_add(&item);
+        }
+        else if(strcmp("Number set", act_item->name) == 0) {
+            static char value[16] = {"12"};
+            static lv_settings_item_t item = {
+                    .type = LV_SETTINGS_TYPE_NUMSET,
+                    .name = "Age",
+                    .value = value,
+                    .state = 12};
+
+            lv_settings_add(&item);
+        }
+        else if(strcmp("Drop down list", act_item->name) == 0) {
+            static lv_settings_item_t item = {
+                    .type = LV_SETTINGS_TYPE_DDLIST,
+                    .name = "Size",
+                    .value = "S\nM\nL\nXL",
+                    .state = 0};
 
             lv_settings_add(&item);
         }
@@ -176,6 +201,22 @@ static void submenu_event_cb(lv_obj_t * btn, lv_event_t e)
         if(strcmp("Voltage", act_item->name) == 0) {
             sprintf(act_item->value, "%d V", act_item->state);
             lv_settings_refr(act_item);
+        }
+        else if(strcmp("Age", act_item->name) == 0) {
+            if(act_item->state < 6) act_item->state = 6;
+            if(act_item->state > 99) act_item->state = 99;
+
+            sprintf(act_item->value, "%d", act_item->state);
+            lv_settings_refr(act_item);
+        }
+        else if(strcmp("Valve", act_item->name) == 0) {
+            if(act_item->state) act_item->value = "Open";
+            else act_item->value = "Close";
+
+            lv_settings_refr(act_item);
+        }
+        else if(strcmp("Size", act_item->name) == 0) {
+            printf("Size: %d\n", act_item->state);
         }
     } else if(e == LV_EVENT_CLICKED) {
         if(strcmp("System test", act_item->name) == 0) {
