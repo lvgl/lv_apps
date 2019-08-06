@@ -9,8 +9,8 @@
 - [Create a menu](#create-a-menu)
 - [Refresh items' data](#refresh-items-data)
 - [Styling](#styling)
-- [Use with keyboard](use-with-keyboard)
-- [Examples](examples)
+- [Use with keyboard](#use-with-keyboard)
+- [Examples](#examples)
 
 ## Overview
 
