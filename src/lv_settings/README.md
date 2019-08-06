@@ -17,7 +17,6 @@ The descriptor elements of menu items have `lv_settings_item_t` type. It has the
 - **name** name of the item as a string
 - **value** current value of the item as a string
 - **state** the current or last state of the item as an integer (e.g. slider's value)
-- **event_cb** event callback to inform the user is something happened with the item
 - **user_date** a `void *` pointer to store any custom data
 - **cont** pointer to the created lvgl object if exists. (Used internally)
 
@@ -38,9 +37,8 @@ It displays the `name` and value of the `item`. If a theme is set `value` will u
 
 The list buttons don't use `state` so it can be freely if required to keep track of the state of something.
 
-In `event_cb`
-- `LV_EVENT_CLICKED`, `LV_EVENT_SHORT_CLICKED`, `LV_EVENT_LONG_PRESSED` is sent when the list button is clicked 
-- `LV_EVENT_REFRESH` is sent when the new page, opened by this button, needs to be created again. (When going back to the created page with *Back* button)
+`LV_EVENT_CLICKED`, `LV_EVENT_SHORT_CLICKED`, `LV_EVENT_LONG_PRESSED` is sent to the `event_cb`
+
 
 #### Button
 Referred as  `LV_SETTINGS_TYPE_BTN`,
@@ -97,17 +95,16 @@ In `event_cb` `LV_EVENT_VALUE_CHANGED` is sent when a new option is selected.
 
 ### Initialize items
 
-To initialize an item you have to set its fields.
+To initialize an item the field of an `lv_settings_item_t` variable needs to be filled.
 ```c
 static lv_settigns_item_t item1;
 item1.type = LV_SETTINGS_TYPE_SLIDER;
 item1.name = "Slider1";
 item1.value = "30 %";
 item1.state = (50 * 256) / 100;  /*30 %, default slider range is 256*/
-item2.event_cb = slider_event_cb;
 ```
 
-It's a good practice to set an array for `value` if it will change later.
+It's a good practice to set a character array for `value` if it will change later.
 ```c
 static char slider2_value[32] = {"50 %"};
 static lv_settigns_item_t item2;
@@ -115,10 +112,9 @@ item2.type = LV_SETTINGS_TYPE_SLIDER;
 item2.name = "Slider2";
 item2.value = slider_value;
 item2.state = (50 * 256) / 100 ;  /*50 %*/
-item2.event_cb = slider_event_cb;
 ``` 
 
-The items can be initialized compile time too.
+The items can be initialized in compile time too.
 ```c
 static char slider3_value[32] = {"70 %"};
 static const lv_settigns_item_t item3 = {
@@ -126,103 +122,85 @@ static const lv_settigns_item_t item3 = {
   .name = "Slider3";
   .value = slider3_value;
   .state = (70 * 256) / 100 ;  /*70 %*/
-  .event_cb = slider_event_cb;
 };
 ```
 
-And the item can be grouped into an array too.
+And the item can be grouped into an array.
 ```c
 static char slider_values[3][32] = {"90 %",  "91 %",  "92 %"};
 static const lv_settigns_item_t items[3] = {
-  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_1",  .value = slider_value[0] .state = (90 * 256) / 100,.event_cb = slider_event_cb},
-  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_2",  .value = slider_value[1] .state = (91 * 256) / 100 .event_cb = slider_event_cb},
-  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_3",  .value = slider_value[2] .state = (92 * 256) / 100 .event_cb = slider_event_cb},
+  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_1",  .value = slider_value[0] .state = (90 * 256) / 100},
+  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_2",  .value = slider_value[1] .state = (91 * 256) / 100},
+  { .type = LV_SETTINGS_TYPE_SLIDER, .name = "Slider4_3",  .value = slider_value[2] .state = (92 * 256) / 100},
 };
 ```
 
 ### Root element
 The root element the button which opens the settings menu. It also has to be an item desriptor:
 ```c
-static lv_settings_item_t root_item = {.name = "Settings", .value = "", .event_cb = root_event_cb};
+static lv_settings_item_t root_item = {.name = "Settings", .value = ""};
 ```
- The root element receives `LV_EVENT_CLICKED` and `LV_EVENT_REFRESH` to create its menu.
+ The root element receives `LV_EVENT_CLICKED` event to create its menu.
 
 
 ### Create a page and add items
-In the root element's or the list buttons event callback in `LV_EVENT_CLICKED` and `LV_EVENT_REFRESH` and new menu page shall be created like
+In the root element's `LV_EVENT_CLICKED` event `lv_settings_open_page(act_item, main_menu_event_cb);` needs to be called to create a menu page:
 ```c
 void root_event_cb(lv_obj_t * btn, lv_event_t e)
 {
-    (void)btn;  /*Unused*/
-
-    if(e == LV_EVENT_CLICKED || e == LV_EVENT_REFRESH) {
+    if(e == LV_EVENT_CLICKED) {
         /*Get the caller item*/
         lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
         /*Create a new page in the menu*/
-        lv_obj_t * page = lv_settings_create_page(act_item);
-
-        /*Add the items*/
-        uint32_t i;
-        for(i = 0; main_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
-            lv_settings_add(page, &main_menu_items[i]);
-        }
-    }
+        lv_settings_open_page(act_item, main_menu_event_cb);
 }
-```
 
-As it's shown in the example a new page is created with `lv_settings_create_page` from the `act_item`. 
-`act_item`'s `name` will be the title of the new page. 
-If further pages are opened from this page, and the "Back" button is clicked on a child page,  `LV_EVENT_REFRESH` will be sent to `act_item` to create the page and items again.
-
-### Item events
-Typically, items other than `LV_SETTINGS_TYPE_LIST_BTN`, are not used to create new pages. 
-The event callback of the items receives `LV_EVENT_CLICKED` or `LV_EVENT_VALUE_CHANGE` depending on the type of the item.
-
-It's up to the developer how to organize the events but there are few typical patterns: 
-1. Create an event function for every item. For example `slider1_event_cb`, `slider2_event_cb`, `slider3_event_cb`...
-2. Create events for a group of items. For example `slider_event_cb` and find the item like this:
-```c
-
-static void slider_event_cb(lv_obj_t * btn, lv_event_t e)
+void main_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 {
-    (void)btn;  /*Unused*/
-
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
-    /*If the item in the main menu was clicked or it asks to refresh create a Motor settings menu*/
-    if(e == LV_EVENT_VALUE_CHANGED) {
-        if(strcmp("Slider1", act_item->name) == 0) {
-            /*Do somethind*/
+    /*Add the meain menu's items */
+    if(e == LV_EVENT_REFRESH) {
+        uint32_t i;
+        for(i = 0; main_menu_items[i].type != LV_SETTINGS_TYPE_INV; i++) {
+            lv_settings_add(&main_menu_items[i]);
         }
-        else if(strcmp("Slider2", act_item->name) == 0) {
-            /*Do something*/
-        }
-        
-        ...
     }
-}
 ```
-3. Use the `user_data` to process the event. 
+
+The new page is created with `lv_settings_open_page` from the `act_item`. `act_item->name` will be the title of the menu page.
+`lv_settings_open_page` sends a `LV_EVENT_REFRESH`  to the `event_cb` set in the second parameter. These callbacks will be used when:
+- the items need to be added again (Open this page when the "Back" button is pressed)
+- the items of this page are clicked or their value has been changed.
+
+### Handle item events
+
+It's up to the developer how to handle the the items' event in the`event_cb` of the page. The common point is the triggering element can be get by `lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();` 
+
+To figure out which item was triggered the event:
+1. Compare the pointer: `if(act_item == &my_slider_item) { ... }`
+2. Compare the name of item: `if(strcmp(act_item->name, "My slider") == 0) { ... }`
+3. Use the `user_data` as you wish. 
 
 ### Add the root menu button
 Once the items are initialized the menu can be created with
 ```c
-    lv_settings_create(&root_item);
+    lv_settings_create(&root_item, event_cb);
 ```
 
 ## Refresh items' data
 In the event function probably some data of the item should be refreshed. 
-Mainly the `value` string formatted as required and the `state` if it's needs to be limited or overwritten.
+Mainly the `value` string formatted as required and the `state` if it needs to be limited or overwritten.
+The item's `name` ca ón be updated too.
+
 The items can be refreshed with `lv_settings_refr(act_item);`.
 
 For example for a "Number setting" item:
 ```c
-static void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
+void motor_menu_event_cb(lv_obj_t * btn, lv_event_t e)
 {
-    (void)btn;  /*Unused*/
-
     /*Get the caller item*/
     lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
 
@@ -255,7 +233,7 @@ It's recommended to use a theme to make the menu stylish. `lv_theme_night` and `
     lv_theme_set_current(th);
     
     /*Create the settings menu with a root item*/
-    lv_settings_create(&root_item);
+    lv_settings_create(&root_item, event_cb);
 
 ```
 
@@ -277,7 +255,7 @@ lv_indev_set_group(indev, g);
 lv_settings_set_group(g);
 
 /*Create the settings menu with a root item*/
-lv_settings_create(&root_item);
+lv_settings_create(&root_item, event_cb);
 ```
 
 ## Examples
