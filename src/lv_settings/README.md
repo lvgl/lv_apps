@@ -4,6 +4,14 @@
 
 ![Settings menu with LittlevGL](../../examples/lv_ex_settings/lv_ex_settings_2.gif)
 
+### Table of content
+- [Overview](#overview)
+- [Create a menu](#create-a-menu)
+- [Refresh items' data](#refresh-items-data)
+- [Styling](#styling)
+- [Use with keyboard](use-with-keyboard)
+- [Examples](examples)
+
 ## Overview
 
 The menu build-up from 
