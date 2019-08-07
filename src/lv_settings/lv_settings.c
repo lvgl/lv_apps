@@ -18,7 +18,6 @@
  *      TYPEDEFS
  **********************/
 
-
 typedef struct
 {
     lv_btn_ext_t btn;
