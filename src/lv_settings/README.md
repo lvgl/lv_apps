@@ -14,7 +14,7 @@
 
 ## Overview
 
-The menu build-up from 
+The menu builds-up from 
 1. A *root item* which opens the menu on click
 2. Pages of the menu
 
@@ -27,11 +27,6 @@ The descriptor elements of menu items have `lv_settings_item_t` type. It has the
 - **state** the current or last state of the item as an integer (e.g. slider's value)
 - **user_date** a `void *` pointer to store any custom data
 - **cont** pointer to the created lvgl object if exists. (Used internally)
-
-In the event callbacks the caller item can get with
-```c
-lv_settings_item_t * act_item = (lv_settings_item_t *)lv_event_get_data();
-```
 
 ### Item types
 
