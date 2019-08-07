@@ -4,6 +4,8 @@
 
 ![Settings menu with LittlevGL](../../examples/lv_ex_settings/lv_ex_settings_2.gif)
 
+_Created by calling `lv_ex_settings_2()`_
+
 ### Table of content
 - [Overview](#overview)
 - [Create a menu](#create-a-menu)
@@ -270,4 +272,5 @@ lv_settings_create(&root_item, event_cb);
 ## Examples
 
 See the [lv_ex_settings](https://github.com/littlevgl/lv_apps/tree/master/examples/lv_ex_settings) folder for examples.
- 
+
+Just simply call `lv_ex_settings_1()` or `lv_ex_settings_2()` to see some examples of what kind of settings menu you can create.
