@@ -43,7 +43,7 @@ typedef struct {
     lv_settings_type_t type;
     char * name;          /*Name or title of the item*/
     char * value;         /*The current value as string*/
-    int32_t state;              /*The current state, e.g. slider's value, switch state as a number */
+    int32_t state;        /*The current state, e.g. slider's value, switch state as a number */
     lv_obj_t * cont;
     union {
         void * ptr;
@@ -71,6 +71,13 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t even
  * @param g the group to use. `NULL` to not use this feature.
  */
 void lv_settings_set_group(lv_group_t * g);
+
+/**
+ * Change the maximum width of settings dialog object
+ * @param settings pointer to settings object
+ * @param max_width maximum width of the settings container page
+ */
+void lv_settings_set_max_width(lv_obj_t * settings, lv_coord_t max_width);
 
 /**
  * Create a new page ask `event_cb` to add the item with `LV_EVENT_REFRESH`

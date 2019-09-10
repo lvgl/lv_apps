@@ -14,6 +14,8 @@
 #define LV_SETTINGS_ANIM_TIME   300 /*[ms]*/
 #define LV_SETTINGS_MAX_WIDTH   250
 
+static lv_coord_t settings_max_width = LV_SETTINGS_MAX_WIDTH;
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -158,6 +160,17 @@ void lv_settings_set_group(lv_group_t * g)
 }
 
 /**
+ * Change the maximum width of settings dialog object
+ * @param settings pointer to settings object
+ * @param max_width maximum width of the settings container page
+ */
+void lv_settings_set_max_width(lv_obj_t * settings, lv_coord_t max_width)
+{
+    (void)settings;
+    settings_max_width = max_width;
+}
+
+/**
  * Create a new page ask `event_cb` to add the item with `LV_EVENT_REFRESH`
  * @param parent_item pointer to an item which open the the new page. Its `name` will be the title
  * @param event_cb event handler of the menu page
@@ -226,7 +239,7 @@ void lv_settings_refr(lv_settings_item_t * item)
  */
 static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb)
 {
-    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), LV_SETTINGS_MAX_WIDTH);
+    lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), settings_max_width);
 
     lv_obj_t * old_menu_cont = act_cont;
 
@@ -254,9 +267,9 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_obj_t * header_title = lv_label_create(header, NULL);
     lv_label_set_text(header_title, parent_item->name);
 
-    bool menu_btn_right = lv_obj_get_x(menu_btn) > lv_obj_get_width(lv_scr_act())/2;
+    bool menu_btn_right = lv_obj_get_x(menu_btn) >= lv_obj_get_width(lv_scr_act())/2;
 
-    if(!menu_btn_right ) {
+    if(!menu_btn_right) {
         lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
         lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
     } else {
