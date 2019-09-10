@@ -14,8 +14,6 @@
 #define LV_SETTINGS_ANIM_TIME   300 /*[ms]*/
 #define LV_SETTINGS_MAX_WIDTH   250
 
-static lv_coord_t settings_max_width = LV_SETTINGS_MAX_WIDTH;
-
 /**********************
  *      TYPEDEFS
  **********************/
@@ -93,6 +91,7 @@ static lv_style_t style_bg;
 static lv_style_t style_item_cont;
 static lv_ll_t history_ll;
 static lv_group_t * group;
+static lv_coord_t settings_max_width = LV_SETTINGS_MAX_WIDTH;
 
 /**********************
  *      MACROS
