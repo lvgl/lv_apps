@@ -85,6 +85,7 @@ static void old_cont_del_cb(lv_anim_t * a);
  *  STATIC VARIABLES
  **********************/
 static lv_obj_t * act_cont;
+static lv_obj_t * menu_btn;
 static lv_style_t style_menu_bg;
 static lv_style_t style_bg;
 static lv_style_t style_item_cont;
@@ -126,7 +127,7 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t even
     style_item_cont.body.padding.inner = LV_DPI / 20;
 
 
-    lv_obj_t * menu_btn = lv_btn_create(lv_scr_act(), NULL);
+    menu_btn = lv_btn_create(lv_scr_act(), NULL);
     lv_btn_set_fit(menu_btn, LV_FIT_TIGHT);
     root_ext_t * ext = lv_obj_allocate_ext_attr(menu_btn, sizeof(root_ext_t));
     ext->item = root_item;
@@ -240,7 +241,6 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_obj_t * header = lv_cont_create(act_cont, NULL);
     lv_cont_set_style(header, LV_CONT_STYLE_MAIN, &lv_style_transp_fit);
     lv_cont_set_fit2(header, LV_FIT_NONE, LV_FIT_TIGHT);
-    lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
     lv_obj_set_width(header, lv_obj_get_width(act_cont));
 
     lv_obj_t * header_back_btn = lv_btn_create(header, NULL);
@@ -250,10 +250,20 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_group_focus_obj(header_back_btn);
 
     lv_obj_t * header_back_label = lv_label_create(header_back_btn, NULL);
-    lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
 
     lv_obj_t * header_title = lv_label_create(header, NULL);
     lv_label_set_text(header_title, parent_item->name);
+
+    bool menu_btn_right = lv_obj_get_x(menu_btn) > lv_obj_get_width(lv_scr_act())/2;
+
+    if(!menu_btn_right ) {
+        lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
+        lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
+    } else {
+        lv_label_set_text(header_back_label, LV_SYMBOL_RIGHT);
+        lv_obj_align(header_back_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
+        lv_obj_align(header_title, header_back_btn, LV_ALIGN_OUT_LEFT_MID, -act_cont->style_p->body.padding.right, 0);
+    }
 
     lv_obj_set_pos(header, 0, 0);
 
@@ -287,7 +297,11 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_anim_t a;
     lv_anim_init(&a);
     lv_anim_set_exec_cb(&a, act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
-    lv_anim_set_values(&a, -lv_obj_get_width(act_cont), 0);
+    lv_coord_t w_cont = lv_obj_get_width(act_cont);
+    lv_coord_t w_scr = lv_obj_get_width(lv_scr_act());
+    uint32_t start = !menu_btn_right ? -w_cont : w_scr;
+    uint32_t end = !menu_btn_right ? 0 : w_scr-w_cont;
+    lv_anim_set_values(&a, start, end);
     lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
     lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
     lv_anim_create(&a);
@@ -739,7 +753,12 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
         lv_anim_t a;
         lv_anim_init(&a);
         lv_anim_set_exec_cb(&a, old_menu_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
-        lv_anim_set_values(&a, 0, -lv_obj_get_width(old_menu_cont));
+        lv_coord_t w_scr = lv_obj_get_width(lv_scr_act());
+        bool menu_btn_right = lv_obj_get_x(menu_btn) >= w_scr/2;
+        lv_coord_t w_cont = lv_obj_get_width(old_menu_cont);
+        uint32_t start = !menu_btn_right ? 0 : w_scr-w_cont;
+        uint32_t end = !menu_btn_right ? -w_cont : w_scr;
+        lv_anim_set_values(&a, start, end);
         lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
         lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
         lv_anim_set_ready_cb(&a, old_cont_del_cb);
@@ -751,7 +770,10 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
 
     if(act_cont) {
         lv_anim_del(act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
-        lv_obj_set_x(act_cont, 0);
+        lv_coord_t w_scr = lv_obj_get_width(lv_scr_act());
+        bool menu_btn_right = lv_obj_get_x(menu_btn) >= w_scr/2;
+        lv_coord_t w_cont = lv_obj_get_width(act_cont);
+        lv_obj_set_x(act_cont, !menu_btn_right ? 0 : w_scr-w_cont);
     }
 }
 
