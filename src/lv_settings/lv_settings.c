@@ -160,7 +160,7 @@ void lv_settings_set_group(lv_group_t * g)
 
 /**
  * Change the maximum width of settings dialog object
- * @param settings pointer to settings object
+ * @param settings pointer to settings object. Not used right now, can be NULL.
  * @param max_width maximum width of the settings container page
  */
 void lv_settings_set_max_width(lv_obj_t * settings, lv_coord_t max_width)
