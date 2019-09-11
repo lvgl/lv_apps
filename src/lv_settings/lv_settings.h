@@ -74,10 +74,9 @@ void lv_settings_set_group(lv_group_t * g);
 
 /**
  * Change the maximum width of settings dialog object
- * @param settings pointer to settings object
  * @param max_width maximum width of the settings container page
  */
-void lv_settings_set_max_width(lv_obj_t * settings, lv_coord_t max_width);
+void lv_settings_set_max_width(lv_coord_t max_width);
 
 /**
  * Create a new page ask `event_cb` to add the item with `LV_EVENT_REFRESH`
