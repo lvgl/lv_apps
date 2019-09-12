@@ -498,7 +498,7 @@ static void add_slider(lv_obj_t * page, lv_settings_item_t * item)
 static void refr_list_btn(lv_settings_item_t * item)
 {
     lv_obj_t * name = lv_obj_get_child(item->cont, NULL);
-    lv_obj_t * value = lv_obj_get_child(item->cont, NULL);
+    lv_obj_t * value = lv_obj_get_child(item->cont, name);
 
     lv_label_set_text(name, item->name);
     lv_label_set_text(value, item->value);
