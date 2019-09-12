@@ -333,6 +333,7 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
 
     list_btn_ext_t * ext = lv_obj_allocate_ext_attr(liste, sizeof(list_btn_ext_t));
     ext->item = item;
+    ext->item->cont = liste;
 
     lv_obj_t * name = lv_label_create(liste, NULL);
     lv_label_set_text(name, item->name);
