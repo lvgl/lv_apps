@@ -244,6 +244,8 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
     lv_obj_set_size(act_cont, w, lv_obj_get_height(lv_scr_act()));
 
+    if(group) lv_group_remove_all_objs(group);
+
     menu_cont_ext_t * ext = lv_obj_allocate_ext_attr(act_cont, sizeof(menu_cont_ext_t));
     ext->event_cb = event_cb;
     ext->menu_page = NULL;
@@ -600,6 +602,9 @@ static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
     }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(btn, LV_ANIM_ON);
+    }
 }
 
 /**
@@ -622,6 +627,9 @@ static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
     }
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
+    }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(slider, LV_ANIM_ON);
     }
 }
 
@@ -646,6 +654,9 @@ static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
     }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(sw, LV_ANIM_ON);
+    }
 }
 
 /**
@@ -666,6 +677,9 @@ static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
     }
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
+    }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(obj, LV_ANIM_ON);
     }
 }
 
@@ -689,6 +703,9 @@ static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
     }
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
+    }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(ddlist, LV_ANIM_ON);
     }
 }
 
@@ -720,6 +737,9 @@ static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
     }
     else if(e == LV_EVENT_DELETE) {
         item_ext->item->cont = NULL;
+    }
+    else if (e ==LV_EVENT_FOCUSED) {
+        lv_list_focus(btn, LV_ANIM_ON);
     }
 }
 
