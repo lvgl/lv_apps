@@ -80,6 +80,7 @@ static void numset_event_cb(lv_obj_t * btn, lv_event_t e);
 static void header_back_event_cb(lv_obj_t * btn, lv_event_t e);
 static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item);
 static void old_cont_del_cb(lv_anim_t * a);
+static void remove_children_from_group(lv_obj_t * obj);
 
 /**********************
  *  STATIC VARIABLES
@@ -238,13 +239,19 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
 {
     lv_coord_t w = LV_MATH_MIN(lv_obj_get_width(lv_scr_act()), settings_max_width);
 
+    if(group) {
+        if(act_cont) {
+            remove_children_from_group(act_cont);
+        } else {
+            lv_group_remove_obj(menu_btn);
+        }
+    }
+
     lv_obj_t * old_menu_cont = act_cont;
 
     act_cont = lv_cont_create(lv_scr_act(), NULL);
     lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
     lv_obj_set_size(act_cont, w, lv_obj_get_height(lv_scr_act()));
-
-    if(group) lv_group_remove_all_objs(group);
 
     menu_cont_ext_t * ext = lv_obj_allocate_ext_attr(act_cont, sizeof(menu_cont_ext_t));
     ext->event_cb = event_cb;
@@ -603,7 +610,9 @@ static void list_btn_event_cb(lv_obj_t * btn, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(btn, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page, btn, LV_ANIM_ON);
     }
 }
 
@@ -629,7 +638,9 @@ static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(slider, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page,slider, LV_ANIM_ON);
     }
 }
 
@@ -655,7 +666,9 @@ static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(sw, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page, sw, LV_ANIM_ON);
     }
 }
 
@@ -679,7 +692,9 @@ static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(obj, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page, obj, LV_ANIM_ON);
     }
 }
 
@@ -705,7 +720,9 @@ static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(ddlist, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page, ddlist, LV_ANIM_ON);
     }
 }
 
@@ -739,7 +756,9 @@ static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
         item_ext->item->cont = NULL;
     }
     else if (e ==LV_EVENT_FOCUSED) {
-        lv_list_focus(btn, LV_ANIM_ON);
+        menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
+        lv_obj_t * page = ext->menu_page;
+        lv_page_focus(page, btn, LV_ANIM_ON);
     }
 }
 
@@ -776,6 +795,7 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
         else {
             /*No previous menu, so no main container*/
             act_cont = NULL;
+            if(group) lv_group_add_obj(group, menu_btn);
         }
     }
 
@@ -835,5 +855,19 @@ static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item)
 static void old_cont_del_cb(lv_anim_t * a)
 {
     lv_obj_del(a->var);
+}
+
+static void remove_children_from_group(lv_obj_t * obj)
+{
+    lv_obj_t *child = lv_obj_get_child(obj, NULL);
+    while(child) {
+        if(lv_obj_get_group(child) == group) {
+            lv_group_remove_obj(child);
+        }
+        remove_children_from_group(child);
+        child = lv_obj_get_child(obj, child);
+    }
+
+
 }
 
