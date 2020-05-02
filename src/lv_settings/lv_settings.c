@@ -795,6 +795,8 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
         else {
             /*No previous menu, so no main container*/
             act_cont = NULL;
+            root_ext_t * ext = lv_obj_get_ext_attr(menu_btn);
+            lv_event_send_func(ext->event_cb, NULL, LV_EVENT_CANCEL,  ext->item);
             if(group) lv_group_add_obj(group, menu_btn);
         }
     }
