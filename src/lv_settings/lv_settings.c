@@ -640,7 +640,7 @@ static void slider_event_cb(lv_obj_t * slider, lv_event_t e)
     else if (e ==LV_EVENT_FOCUSED) {
         menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
         lv_obj_t * page = ext->menu_page;
-        lv_page_focus(page,slider, LV_ANIM_ON);
+        lv_page_focus(page, lv_obj_get_parent(slider), LV_ANIM_ON);
     }
 }
 
@@ -668,7 +668,7 @@ static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
     else if (e ==LV_EVENT_FOCUSED) {
         menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
         lv_obj_t * page = ext->menu_page;
-        lv_page_focus(page, sw, LV_ANIM_ON);
+        lv_page_focus(page, lv_obj_get_parent(sw), LV_ANIM_ON);
     }
 }
 
@@ -694,7 +694,7 @@ static void btn_event_cb(lv_obj_t * obj, lv_event_t e)
     else if (e ==LV_EVENT_FOCUSED) {
         menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
         lv_obj_t * page = ext->menu_page;
-        lv_page_focus(page, obj, LV_ANIM_ON);
+        lv_page_focus(page, lv_obj_get_parent(obj), LV_ANIM_ON);
     }
 }
 
@@ -722,7 +722,7 @@ static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
     else if (e ==LV_EVENT_FOCUSED) {
         menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
         lv_obj_t * page = ext->menu_page;
-        lv_page_focus(page, ddlist, LV_ANIM_ON);
+        lv_page_focus(page, lv_obj_get_parent(ddlist), LV_ANIM_ON);
     }
 }
 
@@ -758,7 +758,7 @@ static void numset_event_cb(lv_obj_t * btn, lv_event_t e)
     else if (e ==LV_EVENT_FOCUSED) {
         menu_cont_ext_t * ext = lv_obj_get_ext_attr(act_cont);
         lv_obj_t * page = ext->menu_page;
-        lv_page_focus(page, btn, LV_ANIM_ON);
+        lv_page_focus(page, lv_obj_get_parent(btn), LV_ANIM_ON);
     }
 }
 
