@@ -87,9 +87,9 @@ static void remove_children_from_group(lv_obj_t * obj);
  **********************/
 static lv_obj_t * act_cont;
 static lv_obj_t * menu_btn;
-static lv_style_t style_menu_bg;
-static lv_style_t style_bg;
-static lv_style_t style_item_cont;
+//static lv_style_t style_menu_bg;
+//static lv_style_t style_bg;
+//static lv_style_t style_item_cont;
 static lv_ll_t history_ll;
 static lv_group_t * group;
 static lv_coord_t settings_max_width = LV_SETTINGS_MAX_WIDTH;
@@ -110,23 +110,23 @@ static lv_coord_t settings_max_width = LV_SETTINGS_MAX_WIDTH;
  */
 lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t event_cb)
 {
-    lv_theme_t *th = lv_theme_get_current();
-    if(th) {
-        lv_style_copy(&style_menu_bg, th->style.cont);
-        lv_style_copy(&style_item_cont, th->style.list.btn.rel);
-    } else {
-        lv_style_copy(&style_menu_bg, &lv_style_pretty);
-        lv_style_copy(&style_item_cont, &lv_style_transp);
-    }
-
-    lv_style_copy(&style_bg, &lv_style_transp_tight);
-    style_menu_bg.body.radius = 0;
-
-    style_item_cont.body.padding.left = LV_DPI / 5;
-    style_item_cont.body.padding.right = LV_DPI / 5;
-    style_item_cont.body.padding.top = LV_DPI / 10;
-    style_item_cont.body.padding.bottom = LV_DPI / 10;
-    style_item_cont.body.padding.inner = LV_DPI / 20;
+//    lv_theme_t *th = lv_theme_get_current();
+//    if(th) {
+//        lv_style_copy(&style_menu_bg, th->style.cont);
+//        lv_style_copy(&style_item_cont, th->style.list.btn.rel);
+//    } else {
+//        lv_style_copy(&style_menu_bg, &lv_style_pretty);
+//        lv_style_copy(&style_item_cont, &lv_style_transp);
+//    }
+//
+//    lv_style_copy(&style_bg, &lv_style_transp_tight);
+//    style_menu_bg.body.radius = 0;
+//
+//    style_item_cont.body.padding.left = LV_DPI / 5;
+//    style_item_cont.body.padding.right = LV_DPI / 5;
+//    style_item_cont.body.padding.top = LV_DPI / 10;
+//    style_item_cont.body.padding.bottom = LV_DPI / 10;
+//    style_item_cont.body.padding.inner = LV_DPI / 20;
 
 
     menu_btn = lv_btn_create(lv_scr_act(), NULL);
@@ -143,7 +143,7 @@ lv_obj_t * lv_settings_create(lv_settings_item_t * root_item, lv_event_cb_t even
 
     lv_obj_set_pos(menu_btn, 0, 0);
 
-    lv_ll_init(&history_ll, sizeof(histroy_t));
+    _lv_ll_init(&history_ll, sizeof(histroy_t));
 
     return menu_btn;
 }
@@ -250,7 +250,7 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_obj_t * old_menu_cont = act_cont;
 
     act_cont = lv_cont_create(lv_scr_act(), NULL);
-    lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
+//    lv_cont_set_style(act_cont, LV_CONT_STYLE_MAIN, &style_menu_bg);
     lv_obj_set_size(act_cont, w, lv_obj_get_height(lv_scr_act()));
 
     menu_cont_ext_t * ext = lv_obj_allocate_ext_attr(act_cont, sizeof(menu_cont_ext_t));
@@ -258,7 +258,7 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     ext->menu_page = NULL;
 
     lv_obj_t * header = lv_cont_create(act_cont, NULL);
-    lv_cont_set_style(header, LV_CONT_STYLE_MAIN, &lv_style_transp_fit);
+//    lv_cont_set_style(header, LV_CONT_STYLE_MAIN, &lv_style_transp_fit);
     lv_cont_set_fit2(header, LV_FIT_NONE, LV_FIT_TIGHT);
     lv_obj_set_width(header, lv_obj_get_width(act_cont));
 
@@ -276,54 +276,57 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     bool menu_btn_right = lv_obj_get_x(menu_btn) >= lv_obj_get_width(lv_scr_act())/2;
 
     if(!menu_btn_right) {
-        lv_cont_set_layout(header, LV_LAYOUT_ROW_M);
+        lv_cont_set_layout(header, LV_LAYOUT_ROW_MID);
         lv_label_set_text(header_back_label, LV_SYMBOL_LEFT);
     } else {
         lv_label_set_text(header_back_label, LV_SYMBOL_RIGHT);
         lv_obj_align(header_back_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
-        lv_obj_align(header_title, header_back_btn, LV_ALIGN_OUT_LEFT_MID, -act_cont->style_p->body.padding.right, 0);
+        lv_obj_align(header_title, header_back_btn, LV_ALIGN_OUT_LEFT_MID, LV_DPI / 20, 0);
     }
 
     lv_obj_set_pos(header, 0, 0);
 
     lv_obj_t * page = lv_page_create(act_cont, NULL);
-    lv_page_set_style(page, LV_PAGE_STYLE_BG, &style_bg);
-    lv_page_set_style(page, LV_PAGE_STYLE_SCRL, &lv_style_transp_tight);
-    lv_page_set_scrl_layout(page, LV_LAYOUT_COL_M);
+//    lv_page_set_style(page, LV_PAGE_STYLE_BG, &style_bg);
+//    lv_page_set_style(page, LV_PAGE_STYLE_SCRL, &lv_style_transp_tight);
+    lv_page_set_scrl_layout(page, LV_LAYOUT_COLUMN_MID);
     lv_list_set_edge_flash(page, true);
     lv_obj_set_size(page, lv_obj_get_width(act_cont), lv_obj_get_height(lv_scr_act()) - lv_obj_get_height(header));
     lv_obj_align(page, header, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
 
     ext->menu_page = page;
 
-    histroy_t * new_node = lv_ll_ins_head(&history_ll);
+    histroy_t * new_node = _lv_ll_ins_head(&history_ll);
     new_node->event_cb = event_cb;
     new_node->item = parent_item;
 
     /*Delete the old menu container after some time*/
     if(old_menu_cont) {
+        lv_anim_path_t path;
+        lv_anim_path_init(&path);
+        lv_anim_path_set_cb(&path, lv_anim_path_step);
         lv_anim_t a;
         lv_anim_init(&a);
-        lv_anim_set_exec_cb(&a, old_menu_cont, NULL);
+        lv_anim_set_var(&a, old_menu_cont);
         lv_anim_set_values(&a, 0, 1);
-        lv_anim_set_path_cb(&a, lv_anim_path_step);
-        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
+        lv_anim_set_path(&a, &path);
+        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME);
         lv_anim_set_ready_cb(&a, old_cont_del_cb);
-        lv_anim_create(&a);
+        lv_anim_start(&a);
     }
 
     /*Float in the new menu*/
     lv_anim_t a;
     lv_anim_init(&a);
-    lv_anim_set_exec_cb(&a, act_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
+    lv_anim_set_var(&a, act_cont);
+    lv_anim_set_exec_cb(&a, (lv_anim_exec_xcb_t)lv_obj_set_x);
     lv_coord_t w_cont = lv_obj_get_width(act_cont);
     lv_coord_t w_scr = lv_obj_get_width(lv_scr_act());
     uint32_t start = !menu_btn_right ? -w_cont : w_scr;
     uint32_t end = !menu_btn_right ? 0 : w_scr-w_cont;
     lv_anim_set_values(&a, start, end);
-    lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
-    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-    lv_anim_create(&a);
+    lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME);
+    lv_anim_start(&a);
 }
 
 /**
@@ -334,8 +337,8 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
 static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
 {
     lv_obj_t * liste = lv_btn_create(page, NULL);
-    lv_btn_set_layout(liste, LV_LAYOUT_COL_L);
-    lv_btn_set_fit2(liste, LV_FIT_FLOOD, LV_FIT_TIGHT);
+    lv_btn_set_layout(liste, LV_LAYOUT_COLUMN_LEFT);
+    lv_btn_set_fit2(liste, LV_FIT_PARENT, LV_FIT_TIGHT);
     lv_page_glue_obj(liste, true);
     lv_obj_set_event_cb(liste, list_btn_event_cb);
     if(group) lv_group_add_obj(group, liste);
@@ -350,12 +353,12 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * value = lv_label_create(liste, NULL);
     lv_label_set_text(value, item->value);
 
-    lv_theme_t * th = lv_theme_get_current();
-    if(th) {
-        lv_btn_set_style(liste, LV_BTN_STYLE_REL, th->style.list.btn.rel);
-        lv_btn_set_style(liste, LV_BTN_STYLE_PR, th->style.list.btn.pr);
-        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
-    }
+//    lv_theme_t * th = lv_theme_get_current();
+//    if(th) {
+//        lv_btn_set_style(liste, LV_BTN_STYLE_REL, th->style.list.btn.rel);
+//        lv_btn_set_style(liste, LV_BTN_STYLE_PR, th->style.list.btn.pr);
+//        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
+//    }
 }
 
 
@@ -379,8 +382,8 @@ static void add_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * value = lv_label_create(btn, NULL);
     lv_label_set_text(value, item->value);
 
-    lv_obj_align(btn, NULL, LV_ALIGN_IN_RIGHT_MID, -style_item_cont.body.padding.right, 0);
-    lv_obj_align(name, NULL, LV_ALIGN_IN_LEFT_MID, style_item_cont.body.padding.left, 0);
+    lv_obj_align(btn, NULL, LV_ALIGN_IN_RIGHT_MID, -LV_DPI/10, 0);
+    lv_obj_align(name, NULL, LV_ALIGN_IN_LEFT_MID, LV_DPI/10, 0);
 }
 
 /**
@@ -398,20 +401,20 @@ static void add_sw(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * value = lv_label_create(cont, NULL);
     lv_label_set_text(value, item->value);
 
-    lv_theme_t * th = lv_theme_get_current();
-    if(th) {
-        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
-    }
+//    lv_theme_t * th = lv_theme_get_current();
+//    if(th) {
+//        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
+//    }
 
-    lv_obj_t * sw = lv_sw_create(cont, NULL);
+    lv_obj_t * sw = lv_switch_create(cont, NULL);
     lv_obj_set_event_cb(sw, sw_event_cb);
     lv_obj_set_size(sw, LV_DPI / 2, LV_DPI / 4);
-    if(item->state) lv_sw_on(sw, LV_ANIM_OFF);
+    if(item->state) lv_switch_on(sw, LV_ANIM_OFF);
     if(group) lv_group_add_obj(group, sw);
 
-    lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, style_item_cont.body.padding.left, style_item_cont.body.padding.top);
-    lv_obj_align(value, name, LV_ALIGN_OUT_BOTTOM_LEFT, 0, style_item_cont.body.padding.inner);
-    lv_obj_align(sw, NULL, LV_ALIGN_IN_RIGHT_MID, -style_item_cont.body.padding.right, 0);
+    lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, LV_DPI/10, LV_DPI/10);
+    lv_obj_align(value, name, LV_ALIGN_OUT_BOTTOM_LEFT, 0, LV_DPI/10);
+    lv_obj_align(sw, NULL, LV_ALIGN_IN_RIGHT_MID, -LV_DPI/10, 0);
 }
 
 /**
@@ -425,16 +428,16 @@ static void add_ddlist(lv_obj_t * page, lv_settings_item_t * item)
 
     lv_obj_t * label = lv_label_create(cont, NULL);
     lv_label_set_text(label, item->name);
-    lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, style_item_cont.body.padding.left, style_item_cont.body.padding.top);
+    lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, LV_DPI/10,LV_DPI/10);
 
-    lv_obj_t * ddlist = lv_ddlist_create(cont, NULL);
-    lv_ddlist_set_options(ddlist, item->value);
-    lv_ddlist_set_draw_arrow(ddlist, true);
-    lv_ddlist_set_fix_height(ddlist, lv_obj_get_height(page) / 2);
-    lv_ddlist_set_fix_width(ddlist, lv_obj_get_width_fit(cont));
-    lv_obj_align(ddlist, label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, style_item_cont.body.padding.inner);
+    lv_obj_t * ddlist = lv_dropdown_create(cont, NULL);
+    lv_dropdown_set_options(ddlist, item->value);
+    lv_dropdown_set_draw_arrow(ddlist, true);
+    lv_dropdown_set_max_height(ddlist, lv_obj_get_height(page) / 2);
+    lv_obj_set_width(ddlist, lv_obj_get_width_fit(cont));
+    lv_obj_align(ddlist, label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, LV_DPI/10);
     lv_obj_set_event_cb(ddlist, ddlist_event_cb);
-    lv_ddlist_set_selected(ddlist, item->state);
+    lv_dropdown_set_selected(ddlist, item->state);
     if(group) lv_group_add_obj(group, ddlist);
 }
 
@@ -446,11 +449,11 @@ static void add_ddlist(lv_obj_t * page, lv_settings_item_t * item)
 static void add_numset(lv_obj_t * page, lv_settings_item_t * item)
 {
     lv_obj_t * cont = item_cont_create(page, item);
-    lv_cont_set_layout(cont, LV_LAYOUT_PRETTY);
+    lv_cont_set_layout(cont, LV_LAYOUT_PRETTY_TOP);
 
     lv_obj_t * label = lv_label_create(cont, NULL);
     lv_label_set_text(label, item->name);
-    lv_obj_set_protect(label, LV_PROTECT_FOLLOW);
+    lv_obj_add_protect(label, LV_PROTECT_FOLLOW);
 
 
     lv_obj_t * btn_dec = lv_btn_create(cont, NULL);
@@ -489,18 +492,17 @@ static void add_slider(lv_obj_t * page, lv_settings_item_t * item)
     lv_label_set_text(value, item->value);
     lv_obj_set_auto_realign(value, true);
 
-    lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, style_item_cont.body.padding.left,
-                                                   style_item_cont.body.padding.top);
-    lv_obj_align(value, NULL, LV_ALIGN_IN_TOP_RIGHT, -style_item_cont.body.padding.right,
-                                                      style_item_cont.body.padding.top);
+    lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, LV_DPI/8, LV_DPI/8);
+    lv_obj_align(value, NULL, LV_ALIGN_IN_TOP_RIGHT, -LV_DPI/8, LV_DPI/8);
     lv_obj_t * slider = lv_slider_create(cont, NULL);
     lv_obj_set_size(slider, lv_obj_get_width_fit(cont), LV_DPI / 4);
     lv_obj_align(slider, NULL, LV_ALIGN_IN_TOP_MID, 0, lv_obj_get_y(name) +
                                                        lv_obj_get_height(name) +
-                                                       style_item_cont.body.padding.inner);
+                                                       LV_DPI/10);
     lv_obj_set_event_cb(slider, slider_event_cb);
     lv_slider_set_range(slider, 0, 256);
     lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
+    lv_obj_set_height(slider, LV_DPI / 20);
     if(group) lv_group_add_obj(group, slider);
 }
 
@@ -533,10 +535,10 @@ static void refr_sw(lv_settings_item_t * item)
     lv_label_set_text(name, item->name);
     lv_label_set_text(value, item->value);
 
-    bool tmp_state = lv_sw_get_state(sw) ? true : false;
+    bool tmp_state = lv_switch_get_state(sw) ? true : false;
     if(tmp_state != item->state) {
-        if(tmp_state == false) lv_sw_off(sw, LV_ANIM_OFF);
-        else lv_sw_on(sw, LV_ANIM_OFF);
+        if(tmp_state == false) lv_switch_off(sw, LV_ANIM_OFF);
+        else lv_switch_on(sw, LV_ANIM_OFF);
     }
 }
 
@@ -547,9 +549,9 @@ static void refr_ddlist(lv_settings_item_t * item)
 
     lv_label_set_text(name, item->name);
 
-    lv_ddlist_set_options(ddlist, item->value);
+    lv_dropdown_set_options(ddlist, item->value);
 
-    lv_ddlist_set_selected(ddlist, item->state);
+    lv_dropdown_set_selected(ddlist, item->state);
 }
 
 static void refr_numset(lv_settings_item_t * item)
@@ -656,7 +658,7 @@ static void sw_event_cb(lv_obj_t * sw, lv_event_t e)
 
     if(e == LV_EVENT_VALUE_CHANGED) {
 
-        item_ext->item->state = lv_sw_get_state(sw);
+        item_ext->item->state = lv_switch_get_state(sw);
         menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
 
         /*Call the button's event handler to create the menu*/
@@ -709,7 +711,7 @@ static void ddlist_event_cb(lv_obj_t * ddlist, lv_event_t e)
     item_cont_ext_t * item_ext = lv_obj_get_ext_attr(cont);
 
     if(e == LV_EVENT_VALUE_CHANGED) {
-        item_ext->item->state = lv_ddlist_get_selected(ddlist);
+        item_ext->item->state = lv_dropdown_get_selected(ddlist);
 
         menu_cont_ext_t * menu_ext = lv_obj_get_ext_attr(act_cont);
 
@@ -777,18 +779,18 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
 
     /*Delete the current item form the history. The goal is the previous.*/
     histroy_t * act_hist;
-    act_hist = lv_ll_get_head(&history_ll);
+    act_hist = _lv_ll_get_head(&history_ll);
     if(act_hist) {
-        lv_ll_rem(&history_ll, act_hist);
+        _lv_ll_remove(&history_ll, act_hist);
         lv_mem_free(act_hist);
 
         /*Get the real previous item and open it*/
-        histroy_t * prev_hist =  lv_ll_get_head(&history_ll);
+        histroy_t * prev_hist =  _lv_ll_get_head(&history_ll);
 
         if(prev_hist) {
             /* Create the previous menu.
              * Remove it from the history because `lv_settings_create_page` will add it again */
-            lv_ll_rem(&history_ll, prev_hist);
+            _lv_ll_remove(&history_ll, prev_hist);
             lv_settings_open_page( prev_hist->item, prev_hist->event_cb);
             lv_mem_free(prev_hist);
         }
@@ -805,17 +807,18 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
     if(old_menu_cont) {
         lv_anim_t a;
         lv_anim_init(&a);
-        lv_anim_set_exec_cb(&a, old_menu_cont, (lv_anim_exec_xcb_t)lv_obj_set_x);
+        lv_anim_set_var(&a, old_menu_cont);
+        lv_anim_set_exec_cb(&a, (lv_anim_exec_xcb_t)lv_obj_set_x);
         lv_coord_t w_scr = lv_obj_get_width(lv_scr_act());
         bool menu_btn_right = lv_obj_get_x(menu_btn) >= w_scr/2;
         lv_coord_t w_cont = lv_obj_get_width(old_menu_cont);
         uint32_t start = !menu_btn_right ? 0 : w_scr-w_cont;
         uint32_t end = !menu_btn_right ? -w_cont : w_scr;
         lv_anim_set_values(&a, start, end);
-        lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME, 0);
+//        lv_anim_set_path(&a, lv_anim_path_ease_in_out);
+        lv_anim_set_time(&a, LV_SETTINGS_ANIM_TIME);
         lv_anim_set_ready_cb(&a, old_cont_del_cb);
-        lv_anim_create(&a);
+        lv_anim_start(&a);
 
         /*Move the old menu to the for ground. */
         lv_obj_move_foreground(old_menu_cont);
@@ -839,8 +842,8 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e)
 static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item)
 {
     lv_obj_t * cont = lv_cont_create(page, NULL);
-    lv_cont_set_style(cont, LV_CONT_STYLE_MAIN, &style_item_cont);
-    lv_cont_set_fit2(cont, LV_FIT_FLOOD, LV_FIT_TIGHT);
+//    lv_cont_set_style(cont, LV_CONT_STYLE_MAIN, &style_item_cont);
+    lv_cont_set_fit2(cont, LV_FIT_PARENT, LV_FIT_TIGHT);
     lv_obj_set_click(cont, false);
 
     item_cont_ext_t * ext = lv_obj_allocate_ext_attr(cont, sizeof(item_cont_ext_t));

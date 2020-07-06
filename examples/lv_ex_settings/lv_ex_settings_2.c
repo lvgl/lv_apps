@@ -112,13 +112,13 @@ static lv_settings_item_t time_menu_items[] =
 
 void lv_ex_settings_2(void)
 {
-    lv_theme_t *th = lv_theme_material_init(210, NULL);
+//    lv_theme_t *th = lv_theme_material_init(210, NULL);
 
     /*Try with different theme too*/
 //    lv_theme_t *th = lv_theme_material_init(10, NULL);
 //    lv_theme_t *th = lv_theme_night_init(40, NULL);
 
-    lv_theme_set_current(th);
+//    lv_theme_set_current(th);
 
 
 /*Add keyboard or mousewheel input devices if enabled*/
