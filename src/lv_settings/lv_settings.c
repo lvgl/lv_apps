@@ -11,7 +11,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define LV_SETTINGS_ANIM_TIME   300 /*[ms]*/
+#define LV_SETTINGS_ANIM_TIME   0 //default: 300 /*[ms]*/
 #define LV_SETTINGS_MAX_WIDTH   250
 
 /**********************
@@ -81,6 +81,8 @@ static void header_back_event_cb(lv_obj_t * btn, lv_event_t e);
 static lv_obj_t * item_cont_create(lv_obj_t * page, lv_settings_item_t * item);
 static void old_cont_del_cb(lv_anim_t * a);
 static void remove_children_from_group(lv_obj_t * obj);
+
+static void add_style_to_obj(lv_obj_t * obj);
 
 /**********************
  *  STATIC VARIABLES
@@ -267,6 +269,8 @@ static void create_page(lv_settings_item_t * parent_item, lv_event_cb_t event_cb
     lv_obj_set_event_cb(header_back_btn, header_back_event_cb);
     if(group) lv_group_add_obj(group, header_back_btn);
     lv_group_focus_obj(header_back_btn);
+	
+	add_style_to_obj(header_back_btn);
 
     lv_obj_t * header_back_label = lv_label_create(header_back_btn, NULL);
 
@@ -353,6 +357,9 @@ static void add_list_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * value = lv_label_create(liste, NULL);
     lv_label_set_text(value, item->value);
 
+
+    add_style_to_obj(liste); 	
+	
 //    lv_theme_t * th = lv_theme_get_current();
 //    if(th) {
 //        lv_btn_set_style(liste, LV_BTN_STYLE_REL, th->style.list.btn.rel);
@@ -382,6 +389,9 @@ static void add_btn(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * value = lv_label_create(btn, NULL);
     lv_label_set_text(value, item->value);
 
+
+	add_style_to_obj(btn); 
+	
     lv_obj_align(btn, NULL, LV_ALIGN_IN_RIGHT_MID, -LV_DPI/10, 0);
     lv_obj_align(name, NULL, LV_ALIGN_IN_LEFT_MID, LV_DPI/10, 0);
 }
@@ -406,12 +416,16 @@ static void add_sw(lv_obj_t * page, lv_settings_item_t * item)
 //        lv_label_set_style(value, LV_LABEL_STYLE_MAIN, th->style.label.hint);
 //    }
 
+
     lv_obj_t * sw = lv_switch_create(cont, NULL);
     lv_obj_set_event_cb(sw, sw_event_cb);
     lv_obj_set_size(sw, LV_DPI / 2, LV_DPI / 4);
     if(item->state) lv_switch_on(sw, LV_ANIM_OFF);
     if(group) lv_group_add_obj(group, sw);
 
+
+	add_style_to_obj(sw); 
+	
     lv_obj_align(name, NULL, LV_ALIGN_IN_TOP_LEFT, LV_DPI/10, LV_DPI/10);
     lv_obj_align(value, name, LV_ALIGN_OUT_BOTTOM_LEFT, 0, LV_DPI/10);
     lv_obj_align(sw, NULL, LV_ALIGN_IN_RIGHT_MID, -LV_DPI/10, 0);
@@ -429,6 +443,8 @@ static void add_ddlist(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_t * label = lv_label_create(cont, NULL);
     lv_label_set_text(label, item->name);
     lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, LV_DPI/10,LV_DPI/10);
+
+	add_style_to_obj(label); 
 
     lv_obj_t * ddlist = lv_dropdown_create(cont, NULL);
     lv_dropdown_set_options(ddlist, item->value);
@@ -463,7 +479,9 @@ static void add_numset(lv_obj_t * page, lv_settings_item_t * item)
 
     label = lv_label_create(btn_dec, NULL);
     lv_label_set_text(label, LV_SYMBOL_MINUS);
-
+    
+	add_style_to_obj(btn_dec); 
+	
     label = lv_label_create(cont, NULL);
     lv_label_set_text(label, item->value);
 
@@ -471,13 +489,15 @@ static void add_numset(lv_obj_t * page, lv_settings_item_t * item)
     lv_obj_set_size(btn_inc, LV_DPI / 2, LV_DPI / 2);
     if(group) lv_group_add_obj(group, btn_inc);
 
+    add_style_to_obj(btn_inc); 
+
     label = lv_label_create(btn_inc, NULL);
     lv_label_set_text(label, LV_SYMBOL_PLUS);
 
 }
 
 /**
- * Create a slider with 0..256 range. Write `item->name` and `item->value` on top of the slider. The current value is loaded from `item->state`
+ * Create a slider with 0..255 range. Write `item->name` and `item->value` on top of the slider. The current value is loaded from `item->state`
  * @param page pointer to a menu page created by `lv_settings_create_page`
  * @param item pointer to a an `lv_settings_item_t` item.
  */
@@ -500,10 +520,12 @@ static void add_slider(lv_obj_t * page, lv_settings_item_t * item)
                                                        lv_obj_get_height(name) +
                                                        LV_DPI/10);
     lv_obj_set_event_cb(slider, slider_event_cb);
-    lv_slider_set_range(slider, 0, 256);
+    lv_slider_set_range(slider, 0, 255);
     lv_slider_set_value(slider, item->state, LV_ANIM_OFF);
     lv_obj_set_height(slider, LV_DPI / 20);
     if(group) lv_group_add_obj(group, slider);
+	
+	add_style_to_obj(slider);
 }
 
 static void refr_list_btn(lv_settings_item_t * item)
@@ -873,6 +895,31 @@ static void remove_children_from_group(lv_obj_t * obj)
         child = lv_obj_get_child(obj, child);
     }
 
-
 }
 
+static void add_style_to_obj(lv_obj_t * obj){
+	
+	static lv_style_t style;
+	/*Create a simple button style*/
+	lv_style_init(&style);
+	//lv_style_set_radius(&style, LV_STATE_DEFAULT, 10);
+	lv_style_set_bg_opa(&style, LV_STATE_DEFAULT, LV_OPA_COVER);
+	lv_style_set_bg_color(&style, LV_STATE_DEFAULT, LV_COLOR_LIME);
+	lv_style_set_bg_grad_color(&style, LV_STATE_DEFAULT, LV_COLOR_GREEN);
+	lv_style_set_bg_grad_dir(&style, LV_STATE_DEFAULT, LV_GRAD_DIR_VER);
+	/*Swap the colors in pressed state*/
+	lv_style_set_bg_color(&style, LV_STATE_PRESSED, LV_COLOR_GREEN);
+	lv_style_set_bg_grad_color(&style, LV_STATE_PRESSED, LV_COLOR_LIME);
+	/*Add a border*/
+	lv_style_set_border_color(&style, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+	lv_style_set_border_opa(&style, LV_STATE_DEFAULT, LV_OPA_70);
+	lv_style_set_border_width(&style, LV_STATE_DEFAULT, 2);
+	/*Different border color in focused state*/
+	lv_style_set_border_color(&style, LV_STATE_FOCUSED | LV_STATE_PRESSED, LV_COLOR_LIME);
+	/*Add outline*/
+	lv_style_set_outline_width(&style, LV_STATE_DEFAULT, 6);
+	lv_style_set_outline_color(&style, LV_STATE_DEFAULT, LV_COLOR_RED);
+	//lv_style_set_outline_pad(&style, LV_STATE_DEFAULT, 2);
+
+	lv_obj_add_style(obj, LV_BTN_PART_MAIN, &style);
+}
