@@ -897,8 +897,8 @@ static void remove_children_from_group(lv_obj_t * obj)
 
 }
 
-static void add_style_to_obj(lv_obj_t * obj){
-	
+static void add_style_to_obj(lv_obj_t * obj)
+{
 	static lv_style_t style;
 	/*Create a simple button style*/
 	lv_style_init(&style);
