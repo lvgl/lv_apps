@@ -11,7 +11,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define LV_SETTINGS_ANIM_TIME   0 //default: 300 /*[ms]*/
+#define LV_SETTINGS_ANIM_TIME   300  /*[ms]*/
 #define LV_SETTINGS_MAX_WIDTH   250
 
 /**********************
